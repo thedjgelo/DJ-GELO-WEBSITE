@@ -137,18 +137,46 @@ if (bookingForm) {
 
 
 
-// V18 — persistent social access. Instagram leads because event updates land there first.
+// V20 — local, monochrome social icons (no external icon CDN required).
+const brandIconSVG = {
+  instagram: `<svg viewBox="0 0 24 24" focusable="false"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5.2"/><circle cx="12" cy="12" r="4.15"/><circle class="brand-icon-dot" cx="17.35" cy="6.75" r="1.05"/></svg>`,
+  tiktok: `<svg viewBox="0 0 24 24" focusable="false"><path d="M14.1 3.2v11.05a4.35 4.35 0 1 1-3.25-4.2"/><path d="M14.1 3.2c.55 2.65 2.25 4.25 5.05 4.75"/></svg>`,
+  youtube: `<svg viewBox="0 0 24 24" focusable="false"><rect x="2.6" y="5.4" width="18.8" height="13.2" rx="4"/><path class="brand-icon-fill" d="M10 9.05 15.7 12 10 14.95Z"/></svg>`,
+  soundcloud: `<svg viewBox="0 0 24 24" focusable="false"><path d="M3 14.7v2.05M5.2 12.8v5.1M7.45 11.45v6.45M9.7 9.55v8.35"/><path d="M11.9 17.9h6.35a3.05 3.05 0 0 0 .35-6.08 5.1 5.1 0 0 0-9.05-2.05"/></svg>`,
+  facebook: `<svg viewBox="0 0 24 24" focusable="false"><path class="brand-icon-fill" d="M14.1 21v-8h2.8l.5-3.2h-3.3V7.75c0-.95.35-1.8 1.85-1.8H17.6V3.1c-.7-.1-1.55-.2-2.65-.2-2.8 0-4.7 1.7-4.7 4.85V9.8H7.1V13h3.15v8Z"/></svg>`
+};
+const brandIcon = (brand, extra = "") => `<span class="brand-icon brand-icon-${brand} ${extra}" aria-hidden="true">${brandIconSVG[brand]}</span>`;
+const brandFromHref = (href = "") => {
+  if (href.includes("instagram.com")) return "instagram";
+  if (href.includes("tiktok.com")) return "tiktok";
+  if (href.includes("youtube.com")) return "youtube";
+  if (href.includes("soundcloud.com")) return "soundcloud";
+  if (href.includes("facebook.com")) return "facebook";
+  return "";
+};
+const decorateSocialLinks = () => {
+  document.querySelectorAll(".social-mini, .footer-socials a, .platform-list a, .soundcloud-feature").forEach((link) => {
+    const brand = brandFromHref(link.getAttribute("href") || "");
+    if (brand && !link.querySelector(":scope > .brand-icon")) link.insertAdjacentHTML("afterbegin", brandIcon(brand));
+  });
+  document.querySelectorAll(".social-watermark").forEach((node) => {
+    node.innerHTML = brandIcon("instagram", "brand-icon-watermark");
+  });
+};
+
+// Persistent social access. Instagram leads because event updates land there first.
 const socialEdge = document.createElement("aside");
 socialEdge.className = "social-edge";
 socialEdge.setAttribute("aria-label", "DJ GELO social profiles");
 socialEdge.innerHTML = `
   <span class="social-edge-label" aria-hidden="true">SOCIAL</span>
-  <a class="social-edge-ig" href="https://www.instagram.com/thedjgelo/" target="_blank" rel="noreferrer" aria-label="Instagram — @thedjgelo"><b>IG</b><span>Instagram</span></a>
-  <a href="https://www.tiktok.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="TikTok — @thedjgelo"><b>TT</b><span>TikTok</span></a>
-  <a href="https://www.youtube.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="YouTube — DJ GELO"><b>YT</b><span>YouTube</span></a>
-  <a href="https://soundcloud.com/thedjgelo" target="_blank" rel="noreferrer" aria-label="SoundCloud — DJ GELO"><b>SC</b><span>SoundCloud</span></a>
-  <a href="https://www.facebook.com/angelo.abellan" target="_blank" rel="noreferrer" aria-label="Facebook — Angelo Abellan"><b>FB</b><span>Facebook</span></a>`;
+  <a class="social-edge-ig" href="https://www.instagram.com/thedjgelo/" target="_blank" rel="noreferrer" aria-label="Instagram — @thedjgelo">${brandIcon("instagram")}<span>Instagram</span></a>
+  <a href="https://www.tiktok.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="TikTok — @thedjgelo">${brandIcon("tiktok")}<span>TikTok</span></a>
+  <a href="https://www.youtube.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="YouTube — DJ GELO">${brandIcon("youtube")}<span>YouTube</span></a>
+  <a href="https://soundcloud.com/thedjgelo" target="_blank" rel="noreferrer" aria-label="SoundCloud — DJ GELO">${brandIcon("soundcloud")}<span>SoundCloud</span></a>
+  <a href="https://www.facebook.com/angelo.abellan" target="_blank" rel="noreferrer" aria-label="Facebook — Angelo Abellan">${brandIcon("facebook")}<span>Facebook</span></a>`;
 document.body.appendChild(socialEdge);
+decorateSocialLinks();
 
 // V14 — vinyl back-to-top control
 const vinylTop = document.createElement("button");
@@ -164,34 +192,51 @@ updateVinyl();
 // V14 — simple data-driven events. Edit only events.json to update public dates.
 const eventDateParts = (dateString) => {
   const d = new Date(`${dateString}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return { mon: "TBA", day: "--", full: dateString || "Date TBA" };
+  if (Number.isNaN(d.getTime())) return { mon: "TBA", day: "--", year: "", full: dateString || "Date TBA" };
   return {
     mon: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
     day: d.toLocaleDateString("en-US", { day: "2-digit" }),
+    year: String(d.getFullYear()),
     full: d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
   };
 };
 const escapeHTML = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
-const eventCardHTML = (event) => {
+const eventCardHTML = (event, pastView = false) => {
   const date = eventDateParts(event.date);
   const isPrivate = event.status === "private";
   const hasFlyer = Boolean(event.flyer);
   const label = event.buttonLabel || "Details";
-  const venue = isPrivate ? (event.name || "Private Event") : (event.venue || event.name || "Event");
-  const title = event.name && event.name !== venue ? event.name : venue;
-  const details = [event.city, event.time, event.age].filter(Boolean).map(escapeHTML).join(" · ");
-  const primaryUrl = event.ticketUrl || event.instagramUrl || "";
-  const handle = event.instagramHandle ? `@${String(event.instagramHandle).replace(/^@/, "")}` : "";
+  const title = event.name || event.venue || (isPrivate ? "Private Event" : "Event");
+  const venueDetail = event.venue && event.venue !== title ? event.venue : "";
+  const details = [venueDetail, event.city, event.address, event.time, event.age].filter(Boolean).map(escapeHTML).join(" · ");
+  const primaryUrl = event.ticketUrl || event.sourceUrl || event.instagramUrl || event.promoterInstagramUrl || event.venueInstagramUrl || "";
   const link = (!isPrivate && primaryUrl) ? `<a class="event-link" href="${escapeHTML(primaryUrl)}" target="_blank" rel="noreferrer">${escapeHTML(label)} ↗</a>` : `<span class="event-meta-chip">${isPrivate ? "PRIVATE BOOKING" : "DETAILS SOON"}</span>`;
-  const instagramLine = (!isPrivate && handle && event.instagramUrl) ? `<a class="event-instagram-handle" href="${escapeHTML(event.instagramUrl)}" target="_blank" rel="noreferrer">Promoter / venue: ${escapeHTML(handle)} ↗</a>` : "";
+  const socialLines = [];
+  if (!isPrivate && event.venueInstagramHandle && event.venueInstagramUrl) {
+    const handle = `@${String(event.venueInstagramHandle).replace(/^@/, "")}`;
+    socialLines.push(`<a class="event-instagram-handle" href="${escapeHTML(event.venueInstagramUrl)}" target="_blank" rel="noreferrer">Venue: ${escapeHTML(handle)} ↗</a>`);
+  }
+  if (!isPrivate && event.promoterInstagramHandle && event.promoterInstagramUrl) {
+    const handle = `@${String(event.promoterInstagramHandle).replace(/^@/, "")}`;
+    socialLines.push(`<a class="event-instagram-handle" href="${escapeHTML(event.promoterInstagramUrl)}" target="_blank" rel="noreferrer">Promoter: ${escapeHTML(handle)} ↗</a>`);
+  }
+  if (!socialLines.length && !isPrivate && event.instagramHandle && event.instagramUrl) {
+    const handle = `@${String(event.instagramHandle).replace(/^@/, "")}`;
+    socialLines.push(`<a class="event-instagram-handle" href="${escapeHTML(event.instagramUrl)}" target="_blank" rel="noreferrer">Promoter / venue: ${escapeHTML(handle)} ↗</a>`);
+  }
+  const socialHTML = socialLines.join("");
   const flyerStyle = hasFlyer ? ` style="--flyer:url('${escapeHTML(event.flyer)}')"` : "";
+  const dateBlock = pastView
+    ? `<div class="event-date past-date"><strong>${escapeHTML(date.mon)}</strong><span>${escapeHTML(date.year)}</span></div>`
+    : `<div class="event-date"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(date.year.slice(-2))}</span></div>`;
+  const dateLabel = pastView ? `${date.mon} ${date.year}` : date.full;
   return `<article class="event-card ${isPrivate ? "private-event" : ""} ${hasFlyer ? "has-flyer" : ""}"${flyerStyle}>
-    <div class="event-date"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(String(new Date(`${event.date}T12:00:00`).getFullYear()).slice(-2))}</span></div>
-    <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(date.full)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${instagramLine}</div>
+    ${dateBlock}
+    <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(dateLabel)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${socialHTML}</div>
     <div class="event-actions">${link}</div>
   </article>`;
 };
-const emptyEventHTML = (past = false) => `<div class="event-empty"><span class="feature-kicker">${past ? "Archive" : "New dates soon"}</span><h3>${past ? "The archive starts here." : "Nothing public on the board yet."}</h3><p>${past ? "Past rooms will collect here as events are added." : "Private bookings stay private. New public dates will show here when they are announced."}</p></div>`;
+const emptyEventHTML = (past = false) => `<div class="event-empty"><span class="feature-kicker">${past ? "Archive" : "New dates soon"}</span><h3>${past ? "The archive starts here." : "Nothing public on the board yet."}</h3><p>${past ? "Past events will collect here as new dates are added." : "Private bookings stay private. New public dates will show here when they are announced."}</p></div>`;
 
 const upcomingEventsNode = document.getElementById("upcomingEvents");
 const pastEventsNode = document.getElementById("pastEvents");
@@ -209,8 +254,8 @@ if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
       const upcoming = sourceEvents.filter((item) => String(item.date || "") >= todayKey).sort((a,b) => String(a.date).localeCompare(String(b.date)));
       const past = sourceEvents.filter((item) => String(item.date || "") < todayKey).sort((a,b) => String(b.date).localeCompare(String(a.date)));
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = upcoming.length ? upcoming.map(eventCardHTML).join("") : emptyEventHTML(false);
-      if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map(eventCardHTML).join("") : emptyEventHTML(true);
-      if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next room.</p></div>`;
+      if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map((event) => eventCardHTML(event, true)).join("") : emptyEventHTML(true);
+      if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next event.</p></div>`;
     })
     .catch(() => {
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = emptyEventHTML(false);
