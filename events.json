@@ -1,0 +1,17 @@
+{
+  "upcoming": [],
+  "past": [],
+  "_template": {
+    "date": "2026-09-18",
+    "venue": "VENUE NAME",
+    "city": "San Jose, CA",
+    "name": "Event Name",
+    "time": "10 PM - 2 AM",
+    "age": "21+",
+    "type": "CLUB",
+    "status": "public",
+    "ticketUrl": "https://example.com",
+    "buttonLabel": "Tickets",
+    "flyer": ""
+  }
+}
