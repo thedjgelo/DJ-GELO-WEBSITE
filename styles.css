@@ -1907,3 +1907,71 @@ body.page-book .ghost-type { transform: translate3d(-50%, var(--ghost-y), 0) rot
 .event-date.past-date span {
   letter-spacing: .18em;
 }
+
+
+/* V25 — personal hero intro + readable rewind-style vinyl back-to-top */
+.hero-bio {
+  max-width: 610px;
+  margin: 16px 0 0;
+  color: #a9a9a4;
+  font-size: clamp(12px, 1.25vw, 14px);
+  line-height: 1.75;
+  letter-spacing: .015em;
+}
+
+.vinyl-top {
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(255,255,255,.52);
+  color: #ededE8;
+  background:
+    radial-gradient(circle at 50% 50%, #cfcfca 0 3px, #20201e 4px 11px, transparent 12px),
+    repeating-radial-gradient(circle at 50% 50%, #070707 0 3px, #171715 4px 5px, #060606 6px 8px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.58), inset 0 0 0 1px rgba(255,255,255,.08), 0 0 18px rgba(255,255,255,.05);
+}
+.vinyl-top::before,
+.vinyl-top::after { content: none; }
+.vinyl-rewind {
+  position: absolute;
+  inset: 5px;
+  width: calc(100% - 10px);
+  height: calc(100% - 10px);
+  overflow: visible;
+  color: #e8e8e3;
+  filter: drop-shadow(0 0 4px rgba(255,255,255,.18));
+  pointer-events: none;
+}
+.vinyl-rewind path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  opacity: .9;
+}
+.vinyl-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+  color: #f3f3ee;
+  font-family: "Unbounded", sans-serif;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-shadow: 0 1px 4px #000, 0 0 7px rgba(255,255,255,.15);
+}
+.vinyl-top:hover { animation: vinylRewind .72s cubic-bezier(.2,.72,.2,1) both; }
+@keyframes vinylRewind { to { transform: rotate(-360deg); } }
+.event-date.past-known-date { opacity: .94; }
+
+@media (max-width: 830px) {
+  .hero-bio { margin-inline: auto; max-width: 560px; }
+}
+@media (max-width: 680px) {
+  .vinyl-top { width: 64px; height: 64px; right: 12px; }
+  .vinyl-label { font-size: 6.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vinyl-top:hover { animation: none; }
+}

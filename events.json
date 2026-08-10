@@ -139,6 +139,7 @@
   ],
   "_template": {
     "date": "2026-09-18",
+    "dateNote": "Use YYYY-MM-DD when day is known; YYYY-MM when only month/year is known",
     "name": "Event Name",
     "venue": "Venue Name",
     "city": "City, CA",

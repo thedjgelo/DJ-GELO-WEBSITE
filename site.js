@@ -183,6 +183,16 @@ const vinylTop = document.createElement("button");
 vinylTop.type = "button";
 vinylTop.className = "vinyl-top";
 vinylTop.setAttribute("aria-label", "Back to top");
+vinylTop.innerHTML = `
+  <svg class="vinyl-rewind" viewBox="0 0 72 72" aria-hidden="true">
+    <defs>
+      <marker id="vinylArrow" markerWidth="7" markerHeight="7" refX="5.2" refY="3.5" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="currentColor"></path>
+      </marker>
+    </defs>
+    <path d="M55 19 A25 25 0 1 0 54 54" marker-end="url(#vinylArrow)"></path>
+  </svg>
+  <span class="vinyl-label">TOP</span>`;
 document.body.appendChild(vinylTop);
 const updateVinyl = () => vinylTop.classList.toggle("is-visible", window.scrollY > 520);
 window.addEventListener("scroll", updateVinyl, { passive: true });
@@ -191,13 +201,23 @@ updateVinyl();
 
 // V14 — simple data-driven events. Edit only events.json to update public dates.
 const eventDateParts = (dateString) => {
-  const d = new Date(`${dateString}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return { mon: "TBA", day: "--", year: "", full: dateString || "Date TBA" };
+  const raw = String(dateString || "").trim();
+  const fullMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const monthMatch = raw.match(/^(\d{4})-(\d{2})$/);
+  if (!fullMatch && !monthMatch) return { mon: "TBA", day: "--", year: "", full: raw || "Date TBA", hasDay: false, sortKey: "9999-99-99" };
+  const year = Number((fullMatch || monthMatch)[1]);
+  const month = Number((fullMatch || monthMatch)[2]);
+  const day = fullMatch ? Number(fullMatch[3]) : 1;
+  const d = new Date(year, month - 1, day, 12, 0, 0);
+  if (Number.isNaN(d.getTime())) return { mon: "TBA", day: "--", year: "", full: raw || "Date TBA", hasDay: false, sortKey: "9999-99-99" };
+  const hasDay = Boolean(fullMatch);
   return {
     mon: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
-    day: d.toLocaleDateString("en-US", { day: "2-digit" }),
-    year: String(d.getFullYear()),
-    full: d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    day: hasDay ? d.toLocaleDateString("en-US", { day: "2-digit" }) : "",
+    year: String(year),
+    full: hasDay ? d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : d.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    hasDay,
+    sortKey: `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`
   };
 };
 const escapeHTML = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
@@ -226,10 +246,10 @@ const eventCardHTML = (event, pastView = false) => {
   }
   const socialHTML = socialLines.join("");
   const flyerStyle = hasFlyer ? ` style="--flyer:url('${escapeHTML(event.flyer)}')"` : "";
-  const dateBlock = pastView
-    ? `<div class="event-date past-date"><strong>${escapeHTML(date.mon)}</strong><span>${escapeHTML(date.year)}</span></div>`
-    : `<div class="event-date"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(date.year.slice(-2))}</span></div>`;
-  const dateLabel = pastView ? `${date.mon} ${date.year}` : date.full;
+  const dateBlock = date.hasDay
+    ? `<div class="event-date${pastView ? " past-known-date" : ""}"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(date.year.slice(-2))}</span></div>`
+    : `<div class="event-date past-date"><strong>${escapeHTML(date.mon)}</strong><span>${escapeHTML(date.year)}</span></div>`;
+  const dateLabel = date.full;
   return `<article class="event-card ${isPrivate ? "private-event" : ""} ${hasFlyer ? "has-flyer" : ""}"${flyerStyle}>
     ${dateBlock}
     <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(dateLabel)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${socialHTML}</div>
@@ -251,8 +271,9 @@ if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
       ];
       const today = new Date();
       const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
-      const upcoming = sourceEvents.filter((item) => String(item.date || "") >= todayKey).sort((a,b) => String(a.date).localeCompare(String(b.date)));
-      const past = sourceEvents.filter((item) => String(item.date || "") < todayKey).sort((a,b) => String(b.date).localeCompare(String(a.date)));
+      const dateKey = (item) => eventDateParts(item.date).sortKey;
+      const upcoming = sourceEvents.filter((item) => dateKey(item) >= todayKey).sort((a,b) => dateKey(a).localeCompare(dateKey(b)));
+      const past = sourceEvents.filter((item) => dateKey(item) < todayKey).sort((a,b) => dateKey(b).localeCompare(dateKey(a)));
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = upcoming.length ? upcoming.map(eventCardHTML).join("") : emptyEventHTML(false);
       if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map((event) => eventCardHTML(event, true)).join("") : emptyEventHTML(true);
       if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next event.</p></div>`;
