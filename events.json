@@ -1,17 +1,69 @@
 {
-  "upcoming": [],
-  "past": [],
+  "upcoming": [
+    {
+      "date": "2026-08-14",
+      "name": "@afterhrs.live",
+      "type": "PUBLIC DATE",
+      "status": "public",
+      "instagramHandle": "afterhrs.live",
+      "instagramUrl": "https://www.instagram.com/afterhrs.live/",
+      "buttonLabel": "View @afterhrs.live",
+      "flyer": ""
+    },
+    {
+      "date": "2026-08-21",
+      "name": "@fuzesj",
+      "type": "PUBLIC DATE",
+      "status": "public",
+      "instagramHandle": "fuzesj",
+      "instagramUrl": "https://www.instagram.com/fuzesj/",
+      "buttonLabel": "View @fuzesj",
+      "flyer": ""
+    },
+    {
+      "date": "2026-08-22",
+      "name": "@hometownbowl",
+      "type": "PUBLIC DATE",
+      "status": "public",
+      "instagramHandle": "hometownbowl",
+      "instagramUrl": "https://www.instagram.com/hometownbowl/",
+      "buttonLabel": "View @hometownbowl",
+      "flyer": ""
+    },
+    {
+      "date": "2026-08-29",
+      "name": "@zoebarsf",
+      "type": "PUBLIC DATE",
+      "status": "public",
+      "instagramHandle": "zoebarsf",
+      "instagramUrl": "https://www.instagram.com/zoebarsf/",
+      "buttonLabel": "View @zoebarsf",
+      "flyer": ""
+    }
+  ],
+  "past": [
+    {
+      "date": "2026-08-09",
+      "name": "@1800rendezvous",
+      "type": "PUBLIC DATE",
+      "status": "public",
+      "instagramHandle": "1800rendezvous",
+      "instagramUrl": "https://www.instagram.com/1800rendezvous/",
+      "buttonLabel": "View @1800rendezvous",
+      "flyer": ""
+    }
+  ],
   "_template": {
     "date": "2026-09-18",
-    "venue": "VENUE NAME",
-    "city": "San Jose, CA",
-    "name": "Event Name",
-    "time": "10 PM - 2 AM",
-    "age": "21+",
-    "type": "CLUB",
+    "name": "@promoterorvenue",
+    "city": "",
+    "time": "",
+    "age": "",
+    "type": "PUBLIC DATE",
     "status": "public",
-    "ticketUrl": "https://example.com",
-    "buttonLabel": "Tickets",
+    "instagramHandle": "promoterorvenue",
+    "instagramUrl": "https://www.instagram.com/promoterorvenue/",
+    "buttonLabel": "View @promoterorvenue",
     "flyer": ""
   }
 }

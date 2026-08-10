@@ -136,6 +136,20 @@ if (bookingForm) {
 }
 
 
+
+// V18 — persistent social access. Instagram leads because event updates land there first.
+const socialEdge = document.createElement("aside");
+socialEdge.className = "social-edge";
+socialEdge.setAttribute("aria-label", "DJ GELO social profiles");
+socialEdge.innerHTML = `
+  <span class="social-edge-label" aria-hidden="true">SOCIAL</span>
+  <a class="social-edge-ig" href="https://www.instagram.com/thedjgelo/" target="_blank" rel="noreferrer" aria-label="Instagram — @thedjgelo"><b>IG</b><span>Instagram</span></a>
+  <a href="https://www.tiktok.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="TikTok — @thedjgelo"><b>TT</b><span>TikTok</span></a>
+  <a href="https://www.youtube.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="YouTube — DJ GELO"><b>YT</b><span>YouTube</span></a>
+  <a href="https://soundcloud.com/thedjgelo" target="_blank" rel="noreferrer" aria-label="SoundCloud — DJ GELO"><b>SC</b><span>SoundCloud</span></a>
+  <a href="https://www.facebook.com/angelo.abellan" target="_blank" rel="noreferrer" aria-label="Facebook — Angelo Abellan"><b>FB</b><span>Facebook</span></a>`;
+document.body.appendChild(socialEdge);
+
 // V14 — vinyl back-to-top control
 const vinylTop = document.createElement("button");
 vinylTop.type = "button";
@@ -166,11 +180,14 @@ const eventCardHTML = (event) => {
   const venue = isPrivate ? (event.name || "Private Event") : (event.venue || event.name || "Event");
   const title = event.name && event.name !== venue ? event.name : venue;
   const details = [event.city, event.time, event.age].filter(Boolean).map(escapeHTML).join(" · ");
-  const link = (!isPrivate && event.ticketUrl) ? `<a class="event-link" href="${escapeHTML(event.ticketUrl)}" target="_blank" rel="noreferrer">${escapeHTML(label)} ↗</a>` : `<span class="event-meta-chip">${isPrivate ? "PRIVATE BOOKING" : "DETAILS SOON"}</span>`;
+  const primaryUrl = event.ticketUrl || event.instagramUrl || "";
+  const handle = event.instagramHandle ? `@${String(event.instagramHandle).replace(/^@/, "")}` : "";
+  const link = (!isPrivate && primaryUrl) ? `<a class="event-link" href="${escapeHTML(primaryUrl)}" target="_blank" rel="noreferrer">${escapeHTML(label)} ↗</a>` : `<span class="event-meta-chip">${isPrivate ? "PRIVATE BOOKING" : "DETAILS SOON"}</span>`;
+  const instagramLine = (!isPrivate && handle && event.instagramUrl) ? `<a class="event-instagram-handle" href="${escapeHTML(event.instagramUrl)}" target="_blank" rel="noreferrer">Promoter / venue: ${escapeHTML(handle)} ↗</a>` : "";
   const flyerStyle = hasFlyer ? ` style="--flyer:url('${escapeHTML(event.flyer)}')"` : "";
   return `<article class="event-card ${isPrivate ? "private-event" : ""} ${hasFlyer ? "has-flyer" : ""}"${flyerStyle}>
     <div class="event-date"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(String(new Date(`${event.date}T12:00:00`).getFullYear()).slice(-2))}</span></div>
-    <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(date.full)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}</div>
+    <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(date.full)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${instagramLine}</div>
     <div class="event-actions">${link}</div>
   </article>`;
 };
@@ -183,10 +200,14 @@ if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
   fetch("events.json", { cache: "no-store" })
     .then((response) => { if (!response.ok) throw new Error("events.json not found"); return response.json(); })
     .then((data) => {
-      const upcoming = Array.isArray(data.upcoming) ? data.upcoming : [];
-      const past = Array.isArray(data.past) ? data.past : [];
-      upcoming.sort((a,b) => String(a.date).localeCompare(String(b.date)));
-      past.sort((a,b) => String(b.date).localeCompare(String(a.date)));
+      const sourceEvents = [
+        ...(Array.isArray(data.upcoming) ? data.upcoming : []),
+        ...(Array.isArray(data.past) ? data.past : [])
+      ];
+      const today = new Date();
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+      const upcoming = sourceEvents.filter((item) => String(item.date || "") >= todayKey).sort((a,b) => String(a.date).localeCompare(String(b.date)));
+      const past = sourceEvents.filter((item) => String(item.date || "") < todayKey).sort((a,b) => String(b.date).localeCompare(String(a.date)));
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = upcoming.length ? upcoming.map(eventCardHTML).join("") : emptyEventHTML(false);
       if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map(eventCardHTML).join("") : emptyEventHTML(true);
       if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next room.</p></div>`;
