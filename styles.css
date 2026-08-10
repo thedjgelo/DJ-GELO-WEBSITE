@@ -625,7 +625,7 @@
       position: absolute;
       inset: 4%;
       z-index: -1;
-      background: url("gelo-logo.png") center / contain no-repeat;
+      background: url("/gelo-logo.png") center / contain no-repeat;
       opacity: 0;
       filter: blur(8px) brightness(2.1) contrast(1.35);
       mix-blend-mode: screen;
@@ -915,8 +915,8 @@
       background: linear-gradient(105deg, transparent 28%, rgba(255,255,255,.08) 37%, rgba(255,255,255,.95) 49%, rgba(255,255,255,.18) 57%, transparent 69%);
       background-size: 260% 100%;
       background-position: 150% 0;
-      -webkit-mask: url("gelo-logo.png") center / contain no-repeat;
-      mask: url("gelo-logo.png") center / contain no-repeat;
+      -webkit-mask: url("/gelo-logo.png") center / contain no-repeat;
+      mask: url("/gelo-logo.png") center / contain no-repeat;
       mix-blend-mode: screen;
     }
     .logo-stage.is-spinning .logo-3d {
@@ -1684,9 +1684,9 @@ body.page-book .ghost-type { transform: translate3d(-50%, var(--ghost-y), 0) rot
 .social-edge a { position:relative; min-height:52px; display:grid; place-items:center; border-bottom:1px solid var(--line); color:#a3a39e; overflow:visible; transition:background .18s ease,color .18s ease; }
 .social-edge a:last-child { border-bottom:0; }
 .social-edge a b { font-family:"Unbounded",sans-serif; font-size:7px; letter-spacing:.08em; }
-.social-edge a span { position:absolute; right:48px; top:50%; transform:translate(8px,-50%); pointer-events:none; opacity:0; padding:9px 12px; border:1px solid rgba(255,255,255,.14); background:#080808; color:#d7d7d2; font-family:"Unbounded",sans-serif; font-size:6px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; transition:opacity .18s ease,transform .18s ease; }
+.social-edge a > .social-edge-name { position:absolute; right:48px; top:50%; transform:translate(8px,-50%); pointer-events:none; opacity:0; padding:9px 12px; border:1px solid rgba(255,255,255,.14); background:#080808; color:#d7d7d2; font-family:"Unbounded",sans-serif; font-size:6px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; transition:opacity .18s ease,transform .18s ease; }
 .social-edge a:hover { background:rgba(255,255,255,.075); color:#fff; }
-.social-edge a:hover span { opacity:1; transform:translate(0,-50%); }
+.social-edge a:hover > .social-edge-name { opacity:1; transform:translate(0,-50%); }
 .social-edge .social-edge-ig { color:#fff; background:rgba(255,255,255,.055); }
 .social-edge .social-edge-ig::before { content:""; position:absolute; left:0; top:9px; bottom:9px; width:2px; background:#d8d8d2; }
 
@@ -1720,7 +1720,7 @@ body.page-book .ghost-type { transform: translate3d(-50%, var(--ghost-y), 0) rot
   .social-edge-label { display:none; }
   .social-edge a { min-height:46px; border-bottom:0; border-left:1px solid var(--line); }
   .social-edge a:first-of-type { border-left:0; }
-  .social-edge a span { display:none; }
+  .social-edge a > .social-edge-name { display:none; }
   .social-edge .social-edge-ig::before { left:8px; right:8px; top:auto; bottom:0; height:2px; width:auto; }
   .vinyl-top { bottom:68px; }
   .footer-socials { grid-template-columns:1fr; }
@@ -1761,8 +1761,8 @@ body.page-book .ghost-type { transform: translate3d(-50%, var(--ghost-y), 0) rot
 .brand-icon .brand-icon-dot { fill: currentColor; stroke: none; }
 
 /* Persistent desktop/mobile social dock */
-.social-edge a .brand-icon { width: 19px; height: 19px; transition: transform .18s ease, filter .18s ease; }
-.social-edge a:hover .brand-icon { transform: scale(1.12); filter: drop-shadow(0 0 7px rgba(255,255,255,.28)); }
+.social-edge a > .brand-icon { position: static; right: auto; top: auto; transform: none; opacity: 1; padding: 0; border: 0; background: transparent; width: 19px; height: 19px; transition: transform .18s ease, filter .18s ease; }
+.social-edge a:hover > .brand-icon { transform: scale(1.12); filter: drop-shadow(0 0 7px rgba(255,255,255,.28)); }
 
 /* Homepage social cards */
 .social-watermark {
@@ -1817,7 +1817,7 @@ body.page-book .ghost-type { transform: translate3d(-50%, var(--ghost-y), 0) rot
 .footer-socials a:hover > .brand-icon { color: #fff; transform: translateY(-50%) scale(1.08); }
 
 @media (max-width: 700px) {
-  .social-edge a .brand-icon { width: 20px; height: 20px; }
+  .social-edge a > .brand-icon { width: 20px; height: 20px; }
   .social-mini > .brand-icon { right: 17px; top: 18px; width: 23px; height: 23px; }
   .footer-socials a { padding-right: 54px; }
 }

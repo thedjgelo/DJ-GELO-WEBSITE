@@ -170,11 +170,11 @@ socialEdge.className = "social-edge";
 socialEdge.setAttribute("aria-label", "DJ GELO social profiles");
 socialEdge.innerHTML = `
   <span class="social-edge-label" aria-hidden="true">SOCIAL</span>
-  <a class="social-edge-ig" href="https://www.instagram.com/thedjgelo/" target="_blank" rel="noreferrer" aria-label="Instagram — @thedjgelo">${brandIcon("instagram")}<span>Instagram</span></a>
-  <a href="https://www.tiktok.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="TikTok — @thedjgelo">${brandIcon("tiktok")}<span>TikTok</span></a>
-  <a href="https://www.youtube.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="YouTube — DJ GELO">${brandIcon("youtube")}<span>YouTube</span></a>
-  <a href="https://soundcloud.com/thedjgelo" target="_blank" rel="noreferrer" aria-label="SoundCloud — DJ GELO">${brandIcon("soundcloud")}<span>SoundCloud</span></a>
-  <a href="https://www.facebook.com/angelo.abellan" target="_blank" rel="noreferrer" aria-label="Facebook — Angelo Abellan">${brandIcon("facebook")}<span>Facebook</span></a>`;
+  <a class="social-edge-ig" href="https://www.instagram.com/thedjgelo/" target="_blank" rel="noreferrer" aria-label="Instagram — @thedjgelo">${brandIcon("instagram")}<span class="social-edge-name">Instagram</span></a>
+  <a href="https://www.tiktok.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="TikTok — @thedjgelo">${brandIcon("tiktok")}<span class="social-edge-name">TikTok</span></a>
+  <a href="https://www.youtube.com/@thedjgelo" target="_blank" rel="noreferrer" aria-label="YouTube — DJ GELO">${brandIcon("youtube")}<span class="social-edge-name">YouTube</span></a>
+  <a href="https://soundcloud.com/thedjgelo" target="_blank" rel="noreferrer" aria-label="SoundCloud — DJ GELO">${brandIcon("soundcloud")}<span class="social-edge-name">SoundCloud</span></a>
+  <a href="https://www.facebook.com/angelo.abellan" target="_blank" rel="noreferrer" aria-label="Facebook — Angelo Abellan">${brandIcon("facebook")}<span class="social-edge-name">Facebook</span></a>`;
 document.body.appendChild(socialEdge);
 decorateSocialLinks();
 
@@ -242,7 +242,7 @@ const upcomingEventsNode = document.getElementById("upcomingEvents");
 const pastEventsNode = document.getElementById("pastEvents");
 const homeNextEventNode = document.getElementById("homeNextEvent");
 if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
-  fetch("events.json", { cache: "no-store" })
+  fetch("/events.json", { cache: "no-store" })
     .then((response) => { if (!response.ok) throw new Error("events.json not found"); return response.json(); })
     .then((data) => {
       const sourceEvents = [
