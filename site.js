@@ -284,3 +284,48 @@ if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
       if (homeNextEventNode) homeNextEventNode.innerHTML = `<div class="event-empty compact-empty"><span class="feature-kicker">Calendar</span><h3>Dates coming soon.</h3><p>Public events will appear here.</p></div>`;
     });
 }
+
+// V26 — Google Analytics 4 interaction tracking.
+// Page views, scrolls and outbound clicks are also handled by GA4 Enhanced Measurement when enabled.
+const trackGeloEvent = (eventName, params = {}) => {
+  if (typeof window.gtag !== "function") return;
+  window.gtag("event", eventName, params);
+};
+
+// Track meaningful calls-to-action without requiring markup changes on every page.
+document.addEventListener("click", (event) => {
+  const link = event.target.closest("a[href]");
+  if (!link) return;
+  const href = link.getAttribute("href") || "";
+  const label = (link.textContent || link.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 100);
+
+  if (href.startsWith("/book") || /book a set|booking/i.test(label)) {
+    trackGeloEvent("book_click", { link_text: label, link_url: link.href });
+  }
+
+  const brand = brandFromHref(href);
+  if (brand) {
+    trackGeloEvent("social_click", { platform: brand, link_url: link.href, link_text: label });
+  }
+
+  if (link.closest(".event-card, .events-list, .event-links") || /eventbrite|dice\.fm|posh\.vip|lu\.ma/i.test(href)) {
+    trackGeloEvent("event_click", { link_url: link.href, link_text: label });
+  }
+
+  if (/instagram\.com/.test(href) && link.closest(".event-card, .events-list, .event-links")) {
+    trackGeloEvent("event_instagram_click", { link_url: link.href, link_text: label });
+  }
+});
+
+if (revealVideo) {
+  revealVideo.addEventListener("click", () => {
+    trackGeloEvent("latest_set_open", { page_path: window.location.pathname });
+  });
+}
+
+if (bookingForm) {
+  bookingForm.addEventListener("submit", () => {
+    const eventType = bookingForm.querySelector('[name="event"]')?.value || "";
+    trackGeloEvent("booking_form_submit", { event_type: eventType });
+  });
+}
