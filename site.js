@@ -131,18 +131,16 @@ if (bookingForm) {
       `Date: ${date}`, `Location / venue: ${location}`, `Event hours: ${hours}`,
       `Approx. guest count: ${guests}`, "", "Details:", details, "", "Thank you!"
     ].join("\n");
-    // Track that the visitor started a booking inquiry. This does not mean the
-    // email was actually sent; it only records that they opened the draft flow.
-    if (typeof gtag === "function") {
-      gtag("event", "booking_inquiry_start", {
-        event_type: eventType || "unknown"
-      });
-    }
+    // Open a real prefilled email draft in Gmail Web. This is more reliable on
+    // browsers that do not have a local mail app registered for mailto: links.
+    const gmailDraft = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(BOOKING_EMAIL)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const draftWindow = window.open(gmailDraft, "_blank", "noopener,noreferrer");
 
-    // Use a standard mailto link so the visitor's configured email handler can
-    // open the prefilled draft (Apple Mail, Outlook, Gmail if registered, etc.).
-    const mailtoUrl = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    // If a browser blocks the new tab, fall back to the visitor's configured
+    // email application instead of silently doing nothing.
+    if (!draftWindow) {
+      window.location.href = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
   });
 }
 
