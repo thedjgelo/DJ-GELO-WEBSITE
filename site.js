@@ -114,7 +114,6 @@ const bookingForm = document.getElementById("bookingForm");
 if (bookingForm) {
   bookingForm.addEventListener("submit", function (event) {
     event.preventDefault();
-
     const data = new FormData(event.currentTarget);
     const name = data.get("name") || "";
     const email = data.get("email") || "";
@@ -125,7 +124,6 @@ if (bookingForm) {
     const hours = data.get("hours") || "Not provided";
     const guests = data.get("guests") || "Not provided";
     const details = data.get("details") || "None provided";
-
     const subject = `Booking Inquiry — ${eventType} — ${date}`;
     const body = [
       "Hi DJ GELO,", "", "I'd like to inquire about booking you for an event.", "",
@@ -133,92 +131,18 @@ if (bookingForm) {
       `Date: ${date}`, `Location / venue: ${location}`, `Event hours: ${hours}`,
       `Approx. guest count: ${guests}`, "", "Details:", details, "", "Thank you!"
     ].join("\n");
-
+    // Track that the visitor started a booking inquiry. This does not mean the
+    // email was actually sent; it only records that they opened the draft flow.
     if (typeof gtag === "function") {
       gtag("event", "booking_inquiry_start", {
         event_type: eventType || "unknown"
       });
     }
 
-    const encodedTo = encodeURIComponent(BOOKING_EMAIL);
-    const encodedSubject = encodeURIComponent(subject);
-    const encodedBody = encodeURIComponent(body);
-
-    const urls = {
-      defaultMail: `mailto:${BOOKING_EMAIL}?subject=${encodedSubject}&body=${encodedBody}`,
-      gmail: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedTo}&su=${encodedSubject}&body=${encodedBody}`,
-      outlook: `https://outlook.live.com/mail/0/deeplink/compose?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`,
-      yahoo: `https://compose.mail.yahoo.com/?to=${encodedTo}&subject=${encodedSubject}&body=${encodedBody}`
-    };
-
-    let chooser = document.getElementById("bookingEmailChooser");
-    if (!chooser) {
-      chooser = document.createElement("div");
-      chooser.id = "bookingEmailChooser";
-      chooser.className = "email-chooser";
-      chooser.innerHTML = `
-        <div class="email-chooser-backdrop" data-close-email-chooser></div>
-        <div class="email-chooser-panel" role="dialog" aria-modal="true" aria-labelledby="emailChooserTitle">
-          <button class="email-chooser-close" type="button" aria-label="Close email options" data-close-email-chooser>×</button>
-          <span class="feature-kicker">Booking inquiry ready</span>
-          <h2 id="emailChooserTitle">Choose your email app.</h2>
-          <p>Your booking details are already filled in. Pick whichever email service you use.</p>
-          <div class="email-chooser-actions">
-            <a class="btn btn-primary" data-email-option="default" href="#">Default email app ↗</a>
-            <a class="btn btn-ghost" data-email-option="gmail" href="#" target="_blank" rel="noreferrer">Gmail ↗</a>
-            <a class="btn btn-ghost" data-email-option="outlook" href="#" target="_blank" rel="noreferrer">Outlook ↗</a>
-            <a class="btn btn-ghost" data-email-option="yahoo" href="#" target="_blank" rel="noreferrer">Yahoo Mail ↗</a>
-            <button class="btn btn-ghost" type="button" data-copy-booking>Copy inquiry details</button>
-          </div>
-          <p class="email-chooser-fallback">If none of those open correctly, copy the inquiry and email <strong>${BOOKING_EMAIL}</strong> from any email service.</p>
-          <div class="email-chooser-status" aria-live="polite"></div>
-        </div>`;
-      document.body.appendChild(chooser);
-
-      chooser.querySelectorAll("[data-close-email-chooser]").forEach((node) => {
-        node.addEventListener("click", () => chooser.classList.remove("is-open"));
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") chooser.classList.remove("is-open");
-      });
-    }
-
-    const links = {
-      default: urls.defaultMail,
-      gmail: urls.gmail,
-      outlook: urls.outlook,
-      yahoo: urls.yahoo
-    };
-    Object.entries(links).forEach(([key, href]) => {
-      const node = chooser.querySelector(`[data-email-option="${key}"]`);
-      if (node) node.href = href;
-    });
-
-    const copyButton = chooser.querySelector("[data-copy-booking]");
-    const status = chooser.querySelector(".email-chooser-status");
-    if (copyButton) {
-      copyButton.onclick = async () => {
-        const fullText = `To: ${BOOKING_EMAIL}\nSubject: ${subject}\n\n${body}`;
-        try {
-          await navigator.clipboard.writeText(fullText);
-          status.textContent = "Inquiry copied. Paste it into any email app.";
-        } catch (_) {
-          const temp = document.createElement("textarea");
-          temp.value = fullText;
-          temp.setAttribute("readonly", "");
-          temp.style.position = "fixed";
-          temp.style.opacity = "0";
-          document.body.appendChild(temp);
-          temp.select();
-          document.execCommand("copy");
-          temp.remove();
-          status.textContent = "Inquiry copied. Paste it into any email app.";
-        }
-      };
-    }
-
-    chooser.classList.add("is-open");
-    chooser.querySelector('[data-email-option="default"]')?.focus();
+    // Use a standard mailto link so the visitor's configured email handler can
+    // open the prefilled draft (Apple Mail, Outlook, Gmail if registered, etc.).
+    const mailtoUrl = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
   });
 }
 
