@@ -1,26 +1,42 @@
 {
   "upcoming": [
     {
-      "date": "2026-09-17",
-      "name": "DJ Showcase — Over The Top x Jaymeebaby",
-      "venue": "Laughing Monk",
+      "date": "2026-11-06",
+      "name": "Back 2 The Booth: R&Bay",
+      "venue": "ZOË Cocktail Bar",
       "city": "San Francisco, CA",
-      "time": "6 PM - 9 PM",
-      "type": "DJ SHOWCASE",
+      "address": "579 Howard Street",
+      "time": "9:30 PM - 2:30 AM",
+      "type": "CLUB / B2B",
       "status": "public",
-      "venueInstagramHandle": "thelaughingmonksf",
-      "venueInstagramUrl": "https://www.instagram.com/thelaughingmonksf/",
-      "buttonLabel": "View @thelaughingmonksf",
-      "instagramUrl": "https://www.instagram.com/thelaughingmonksf/",
+      "venueInstagramHandle": "zoebarsf",
+      "venueInstagramUrl": "https://www.instagram.com/zoebarsf/",
+      "buttonLabel": "Tickets / RSVP",
+      "instagramUrl": "https://www.instagram.com/zoebarsf/",
+      "sourceUrl": "https://stayhappening.com/e/b2b-gelo-x-agila-x-mfzorg-%E2%80%94-friday-november-6-E118SB7IXL3E1",
+      "ticketUrl": "https://www.eventbrite.com/e/b2b-gelo-x-agila-x-mfzorg-friday-november-6-tickets-2003942818916?aff=ebdsoporgprofile",
       "flyer": ""
     },
     {
-      "date": "2026-09-18",
-      "name": "Private Event",
-      "type": "PRIVATE EVENT",
-      "status": "private",
+      "date": "2026-11-27",
+      "name": "Back 2 The Booth: BACK IN THE BAY! | Thanksgiving Weekend",
+      "venue": "Fuze",
+      "city": "San Jose, CA",
+      "address": "58 S 1st Street",
+      "time": "10 PM - 2 AM",
+      "type": "B2TB / CLUB",
+      "status": "public",
+      "promoterInstagramHandle": "back2thebooth",
+      "promoterInstagramUrl": "https://www.instagram.com/back2thebooth/",
+      "venueInstagramHandle": "fuzesj",
+      "venueInstagramUrl": "https://www.instagram.com/fuzesj/",
+      "buttonLabel": "View @back2thebooth",
+      "instagramUrl": "https://www.instagram.com/back2thebooth/",
+      "ticketUrl": "",
       "flyer": ""
-    },
+    }
+  ],
+  "past": [
     {
       "date": "2026-09-19",
       "name": "Hometown Bowl",
@@ -36,9 +52,14 @@
       "buttonLabel": "View @nothinbutslapz",
       "instagramUrl": "https://www.instagram.com/nothinbutslapz/",
       "flyer": ""
-    }
-  ],
-  "past": [
+    },
+    {
+      "date": "2026-09-18",
+      "name": "Private Event",
+      "type": "PRIVATE EVENT",
+      "status": "private",
+      "flyer": ""
+    },
     {
       "date": "2026-08-29",
       "name": "B2TB: Back 2 the 2000s",
@@ -176,7 +197,7 @@
     }
   ],
   "_template": {
-    "date": "2026-09-18",
+    "date": "2026-12-01",
     "dateNote": "Use YYYY-MM-DD when day is known; YYYY-MM when only month/year is known",
     "name": "Event Name",
     "venue": "Venue Name",
