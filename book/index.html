@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#050505" />
-  <meta name="description" content="Book DJ GELO for club nights, college events, private parties, weddings, corporate events and other events." />
+  <meta name="description" content="Book DJ GELO for club nights, school events, private parties, weddings, corporate events and other events." />
   <link rel="canonical" href="https://djgelo.com/book/" />
   <link rel="icon" href="/gelo-logo.png" />
   <title>Book DJ GELO — Booking Inquiry</title>
@@ -53,7 +53,7 @@
         <p class="page-lede">Tell me what you’re planning. Date, location, timing and the kind of event are enough to get the conversation started.</p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#inquiry">Start inquiry <span aria-hidden="true">↘</span></a>
-          <a class="btn btn-ghost" href="mailto:thedjgelo@gmail.com">Email directly ↗</a>
+          <a class="btn btn-ghost" href="https://mail.google.com/mail/?view=cm&fs=1&to=thedjgelo%40gmail.com" target="_blank" rel="noreferrer">Email directly ↗</a>
         </div>
       </div>
 
@@ -76,33 +76,35 @@
     </div>
 
     <section class="section" id="inquiry" aria-labelledby="book-title">
-      <div class="section-head"><h2 id="book-title">Booking Inquiry</h2><span>No budget field — just the event details</span></div>
+      <div class="section-head"><h2 id="book-title">Booking Inquiry</h2><span>Tell me about your event</span></div>
       <div class="booking-layout">
         <aside class="booking-aside">
           <span class="book-kicker">Book DJ GELO</span>
           <h2>Tell me about the night.</h2>
-          <p>Send the essentials below. Send the essentials below. The button opens a ready-to-send Gmail draft with everything filled in, so none of your information is stored on this website.</p>
+          <p>Send the essentials below. Your inquiry is securely saved so I can follow up, and I’ll get an email notification when it arrives.</p>
           <div class="booking-details">
-            <div><span>Available for</span><strong>Clubs · College events · Private parties · Weddings · Corporate events</strong></div>
+            <div><span>Available for</span><strong>Clubs · School events · Private parties · Weddings · Corporate events</strong></div>
             <div><span>Based in</span><strong>Bay Area, California</strong></div>
             <div><span>Direct email</span><strong>thedjgelo@gmail.com</strong></div>
           </div>
         </aside>
         <div class="booking-form-wrap">
           <form id="bookingForm">
+            <div class="field-honeypot" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off" /></div>
             <div class="form-grid">
               <div class="field"><label for="name">Your name</label><input id="name" name="name" autocomplete="name" placeholder="Name" required /></div>
               <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@email.com" required /></div>
               <div class="field"><label for="phone">Phone <span class="optional">optional</span></label><input id="phone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 555-5555" /></div>
-              <div class="field"><label for="event">Event type</label><select id="event" name="event" required><option value="" selected disabled>Select event</option><option>Club / nightlife</option><option>College event</option><option>Private party</option><option>Wedding</option><option>Corporate event</option><option>Other</option></select></div>
+              <div class="field"><label for="event">Event type</label><select id="event" name="event" required><option value="" selected disabled>Select event</option><option>Club / nightlife</option><option>School event</option><option>Private party</option><option>Wedding</option><option>Corporate event</option><option>Other</option></select></div>
               <div class="field"><label for="date">Event date</label><input id="date" name="date" type="date" required /></div>
               <div class="field"><label for="location">Location</label><input id="location" name="location" placeholder="City / venue" required /></div>
               <div class="field"><label for="hours">Event hours</label><input id="hours" name="hours" placeholder="e.g. 9 PM – 1 AM" /></div>
               <div class="field"><label for="guests">Approx. guest count</label><input id="guests" name="guests" inputmode="numeric" placeholder="e.g. 150" /></div>
               <div class="field full"><label for="details">Anything else?</label><textarea id="details" name="details" placeholder="Venue details, vibe, setup needs, special requests, or anything I should know."></textarea></div>
             </div>
-            <div class="form-actions"><button class="btn btn-primary submit" type="submit">Open email draft <span aria-hidden="true">↗</span></button><a class="email-link" href="mailto:thedjgelo@gmail.com">or email directly</a></div>
-            <div class="fineprint">Nothing is submitted or stored on this site. Your details are used only to create a prefilled email draft to DJ GELO. If Gmail is not available, use the direct email link.</div>
+            <div class="form-actions"><button class="btn btn-primary submit" type="submit">Send inquiry <span aria-hidden="true">↗</span></button><a class="email-link" href="https://mail.google.com/mail/?view=cm&fs=1&to=thedjgelo%40gmail.com" target="_blank" rel="noreferrer">or email directly</a></div>
+            <div class="form-status" id="bookingFormStatus" role="status" aria-live="polite"></div>
+            <div class="fineprint">Your information is used to respond to and manage your booking request. <a href="/privacy/">Privacy details</a>. If the online form is temporarily unavailable, the email option will still work.</div>
           </form>
         </div>
       </div>
@@ -118,7 +120,17 @@
       </div>
     </footer>
 
+  <div class="booking-confirmation" id="bookingConfirmation" role="status" aria-live="polite" aria-hidden="true">
+    <div class="booking-confirmation-card">
+      <span class="booking-confirmation-kicker">Booking inquiry</span>
+      <strong>Inquiry sent!</strong>
+      <p>I’ll get back to you as soon as I can.</p>
+    </div>
+  </div>
+
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
   <script src="/site.js"></script>
 </body>
 </html>

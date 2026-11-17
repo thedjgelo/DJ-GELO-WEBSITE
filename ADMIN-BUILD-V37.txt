@@ -1,0 +1,34 @@
+DJ GELO SITE v37
+
+PUBLIC DESIGN
+- Quieter homepage hierarchy; removed decorative microcode from hero.
+- Replaced redundant Explore cards with Selected Experience + credibility.
+- Simplified social labels and section metadata.
+- Increased key micro-label sizes for readability.
+- Cleaner event cards with separate DJ GELO / BACK 2 THE BOOTH badges.
+- Standardized booking-facing wording to School Events.
+- Added privacy disclosure page.
+
+BACK 2 THE BOOTH
+- New /back2thebooth/ landing page with its own minimal brand shell.
+- Automatically filters published B2TB events from Supabase.
+- Includes next event, ticket/embed support, past archive, Instagram CTA and DJ GELO link-back.
+
+ADMIN / CRM
+- Dashboard metrics and recent activity.
+- Inquiries search/filter/sort/delete + CSV export.
+- Convert inquiry to booking.
+- Bookings with client/event info, total, deposit, paid amount, balance, status and internal notes.
+- Bookings search/filter/sort/delete + CSV export.
+- Invoice PDF upload to private Supabase Storage.
+- Invoice number/amount/deposit/balance/status tracking.
+- View private PDF via short-lived signed URL.
+- Draft Gmail message (manual attachment).
+- Send invoice through Resend with PDF attached.
+- Mark invoice paid / delete invoice and stored PDF.
+
+SETUP
+- Run supabase/v37-migration.sql.
+- Deploy supabase/functions/send-invoice/index.ts.
+- Updated submit-inquiry function adds optional client confirmation after branded sender setup.
+- See V37-SETUP.md.

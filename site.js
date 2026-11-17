@@ -1,4 +1,16 @@
 const BOOKING_EMAIL = "thedjgelo@gmail.com";
+
+// V32 — Supabase-backed events + inquiries with a safe legacy fallback.
+const getSupabaseClient = () => {
+  const config = window.DJGELO_SUPABASE || {};
+  const configured = config.url && config.publishableKey && !config.url.startsWith("YOUR_") && !config.publishableKey.startsWith("YOUR_");
+  if (!configured || !window.supabase?.createClient) return null;
+  if (!window.__djgeloSupabaseClient) {
+    window.__djgeloSupabaseClient = window.supabase.createClient(config.url, config.publishableKey);
+  }
+  return window.__djgeloSupabaseClient;
+};
+
 const yearNode = document.getElementById("year");
 if (yearNode) yearNode.textContent = new Date().getFullYear();
 
@@ -111,39 +123,86 @@ if (revealVideo && videoEmbed) {
 }
 
 const bookingForm = document.getElementById("bookingForm");
+const bookingConfirmation = document.getElementById("bookingConfirmation");
+let bookingConfirmationTimer;
+
+const showBookingConfirmation = () => {
+  if (!bookingConfirmation) return;
+  window.clearTimeout(bookingConfirmationTimer);
+  bookingConfirmation.hidden = false;
+  bookingConfirmation.setAttribute("aria-hidden", "false");
+  window.requestAnimationFrame(() => {
+    bookingConfirmation.classList.add("is-visible");
+  });
+  bookingConfirmationTimer = window.setTimeout(() => {
+    bookingConfirmation.classList.remove("is-visible");
+    bookingConfirmation.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      bookingConfirmation.hidden = true;
+    }, 320);
+  }, 4200);
+};
+
 if (bookingForm) {
-  bookingForm.addEventListener("submit", function (event) {
+  bookingForm.addEventListener("submit", async function (event) {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = data.get("name") || "";
-    const email = data.get("email") || "";
-    const eventType = data.get("event") || "";
-    const date = data.get("date") || "";
-    const phone = data.get("phone") || "Not provided";
-    const location = data.get("location") || "";
-    const hours = data.get("hours") || "Not provided";
-    const guests = data.get("guests") || "Not provided";
-    const details = data.get("details") || "None provided";
-    const subject = `Booking Inquiry — ${eventType} — ${date}`;
+    const form = event.currentTarget;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const statusNode = document.getElementById("bookingFormStatus");
+    const data = new FormData(form);
+    const payload = {
+      name: String(data.get("name") || "").trim(),
+      email: String(data.get("email") || "").trim(),
+      phone: String(data.get("phone") || "").trim(),
+      event_type: String(data.get("event") || "").trim(),
+      event_date: String(data.get("date") || "").trim(),
+      location: String(data.get("location") || "").trim(),
+      event_hours: String(data.get("hours") || "").trim(),
+      guest_count: String(data.get("guests") || "").trim(),
+      details: String(data.get("details") || "").trim(),
+      website: String(data.get("website") || "").trim()
+    };
+
+    const setStatus = (message, state = "") => {
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.dataset.state = state;
+    };
+
+    const client = getSupabaseClient();
+    if (client) {
+      submitButton?.setAttribute("disabled", "disabled");
+      setStatus("Sending your inquiry…", "working");
+      try {
+        const { data: result, error } = await client.functions.invoke("submit-inquiry", { body: payload });
+        if (error) throw error;
+        if (!result?.ok) throw new Error(result?.error || "Unable to submit inquiry");
+        form.reset();
+        setStatus("", "");
+        showBookingConfirmation();
+        trackGeloEvent("booking_inquiry_submit", { event_type: payload.event_type });
+        return;
+      } catch (error) {
+        console.error("Booking inquiry submit failed:", error);
+        setStatus("The online form is temporarily unavailable. Opening an email draft instead…", "error");
+      } finally {
+        submitButton?.removeAttribute("disabled");
+      }
+    }
+
+    // Safe fallback until Supabase is configured, or if the server endpoint is unavailable.
+    const subject = `Booking Inquiry — ${payload.event_type} — ${payload.event_date}`;
     const body = [
       "Hi DJ GELO,", "", "I'd like to inquire about booking you for an event.", "",
-      `Name: ${name}`, `Email: ${email}`, `Phone: ${phone}`, `Event type: ${eventType}`,
-      `Date: ${date}`, `Location / venue: ${location}`, `Event hours: ${hours}`,
-      `Approx. guest count: ${guests}`, "", "Details:", details, "", "Thank you!"
+      `Name: ${payload.name}`, `Email: ${payload.email}`, `Phone: ${payload.phone || "Not provided"}`, `Event type: ${payload.event_type}`,
+      `Date: ${payload.event_date}`, `Location / venue: ${payload.location}`, `Event hours: ${payload.event_hours || "Not provided"}`,
+      `Approx. guest count: ${payload.guest_count || "Not provided"}`, "", "Details:", payload.details || "None provided", "", "Thank you!"
     ].join("\n");
-    // Open a real prefilled email draft in Gmail Web. This is more reliable on
-    // browsers that do not have a local mail app registered for mailto: links.
     const gmailDraft = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(BOOKING_EMAIL)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const draftWindow = window.open(gmailDraft, "_blank", "noopener,noreferrer");
-
-    // If a browser blocks the new tab, fall back to the visitor's configured
-    // email application instead of silently doing nothing.
-    if (!draftWindow) {
-      window.location.href = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    }
+    if (!draftWindow) window.location.href = `mailto:${BOOKING_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   });
 }
-
 
 
 // V20 — local, monochrome social icons (no external icon CDN required).
@@ -208,7 +267,7 @@ window.addEventListener("scroll", updateVinyl, { passive: true });
 vinylTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" }));
 updateVinyl();
 
-// V14 — simple data-driven events. Edit only events.json to update public dates.
+// V32 — data-driven events from Supabase, with events.json as a fallback.
 const eventDateParts = (dateString) => {
   const raw = String(dateString || "").trim();
   const fullMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -230,6 +289,29 @@ const eventDateParts = (dateString) => {
   };
 };
 const escapeHTML = (value = "") => String(value).replace(/[&<>'"]/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
+const normalizeDbEvent = (row) => ({
+  id: row.id,
+  date: row.event_date,
+  name: row.name,
+  venue: row.venue,
+  city: row.city,
+  address: row.address,
+  time: row.time_label,
+  age: row.age,
+  type: row.event_type,
+  status: row.visibility || row.status || "public",
+  promoterInstagramHandle: row.promoter_instagram_handle,
+  promoterInstagramUrl: row.promoter_instagram_url,
+  venueInstagramHandle: row.venue_instagram_handle,
+  venueInstagramUrl: row.venue_instagram_url,
+  instagramUrl: row.instagram_url,
+  sourceUrl: row.source_url,
+  ticketUrl: row.ticket_url,
+  buttonLabel: row.button_label,
+  flyer: row.flyer_url,
+  embedUrl: row.embed_url,
+  eventBrand: row.event_brand || "djgelo"
+});
 const eventCardHTML = (event, pastView = false) => {
   const date = eventDateParts(event.date);
   const isPrivate = event.status === "private";
@@ -249,48 +331,73 @@ const eventCardHTML = (event, pastView = false) => {
     const handle = `@${String(event.promoterInstagramHandle).replace(/^@/, "")}`;
     socialLines.push(`<a class="event-instagram-handle" href="${escapeHTML(event.promoterInstagramUrl)}" target="_blank" rel="noreferrer">Promoter: ${escapeHTML(handle)} ↗</a>`);
   }
-  if (!socialLines.length && !isPrivate && event.instagramHandle && event.instagramUrl) {
-    const handle = `@${String(event.instagramHandle).replace(/^@/, "")}`;
-    socialLines.push(`<a class="event-instagram-handle" href="${escapeHTML(event.instagramUrl)}" target="_blank" rel="noreferrer">Promoter / venue: ${escapeHTML(handle)} ↗</a>`);
-  }
   const socialHTML = socialLines.join("");
   const flyerStyle = hasFlyer ? ` style="--flyer:url('${escapeHTML(event.flyer)}')"` : "";
   const dateBlock = date.hasDay
-    ? `<div class="event-date${pastView ? " past-known-date" : ""}"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)} / ${escapeHTML(date.year.slice(-2))}</span></div>`
+    ? `<div class="event-date${pastView ? " past-known-date" : ""}"><strong>${escapeHTML(date.day)}</strong><span>${escapeHTML(date.mon)}</span></div>`
     : `<div class="event-date past-date"><strong>${escapeHTML(date.mon)}</strong><span>${escapeHTML(date.year)}</span></div>`;
-  const dateLabel = date.full;
+  const brand = event.eventBrand || (/back2thebooth/i.test(event.promoterInstagramHandle || "") || /back 2 the booth|b2tb|back in the bay/i.test(title) ? "b2tb" : "djgelo");
+  const brandLabel = brand === "b2tb" ? "BACK 2 THE BOOTH" : "DJ GELO";
+  const showEmbed = Boolean(event.embedUrl) && (document.body.classList.contains("page-events") || document.body.classList.contains("page-b2tb")) && !pastView && !isPrivate;
+  const embed = showEmbed ? `<div class="event-ticket-embed"><iframe src="${escapeHTML(event.embedUrl)}" height="700" width="100%" title="${escapeHTML(title)} tickets" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>` : "";
   return `<article class="event-card ${isPrivate ? "private-event" : ""} ${hasFlyer ? "has-flyer" : ""}"${flyerStyle}>
     ${dateBlock}
-    <div class="event-info"><span class="event-type">${escapeHTML(event.type || "EVENT")} // ${escapeHTML(dateLabel)}</span><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${socialHTML}</div>
+    <div class="event-info"><div class="event-label-row"><span class="event-brand-badge ${brand === "b2tb" ? "is-b2tb" : ""}">${escapeHTML(brandLabel)}</span><span class="event-type">${escapeHTML(event.type || "EVENT")}</span></div><h3>${escapeHTML(title)}</h3>${details ? `<p>${details}</p>` : ""}${socialHTML}</div>
     <div class="event-actions">${link}</div>
+    ${embed}
   </article>`;
 };
 const emptyEventHTML = (past = false) => `<div class="event-empty"><span class="feature-kicker">${past ? "Archive" : "New dates soon"}</span><h3>${past ? "The archive starts here." : "Nothing public on the board yet."}</h3><p>${past ? "Past events will collect here as new dates are added." : "Private bookings stay private. New public dates will show here when they are announced."}</p></div>`;
 
+const loadEventsFromJson = async () => {
+  const response = await fetch("/events.json", { cache: "no-store" });
+  if (!response.ok) throw new Error("events.json not found");
+  const data = await response.json();
+  return [
+    ...(Array.isArray(data.upcoming) ? data.upcoming : []),
+    ...(Array.isArray(data.past) ? data.past : [])
+  ];
+};
+const loadPublicEvents = async () => {
+  const client = getSupabaseClient();
+  if (!client) return loadEventsFromJson();
+  const { data, error } = await client.from("events").select("*").eq("status", "published").order("event_date", { ascending: true });
+  if (error) {
+    console.warn("Supabase event load failed; using events.json fallback.", error);
+    return loadEventsFromJson();
+  }
+  return (data || []).map(normalizeDbEvent);
+};
+
 const upcomingEventsNode = document.getElementById("upcomingEvents");
 const pastEventsNode = document.getElementById("pastEvents");
 const homeNextEventNode = document.getElementById("homeNextEvent");
-if (upcomingEventsNode || pastEventsNode || homeNextEventNode) {
-  fetch("/events.json", { cache: "no-store" })
-    .then((response) => { if (!response.ok) throw new Error("events.json not found"); return response.json(); })
-    .then((data) => {
-      const sourceEvents = [
-        ...(Array.isArray(data.upcoming) ? data.upcoming : []),
-        ...(Array.isArray(data.past) ? data.past : [])
-      ];
+const b2tbUpcomingNode = document.getElementById("b2tbUpcoming");
+const b2tbPastNode = document.getElementById("b2tbPast");
+if (upcomingEventsNode || pastEventsNode || homeNextEventNode || b2tbUpcomingNode || b2tbPastNode) {
+  loadPublicEvents()
+    .then((sourceEvents) => {
       const today = new Date();
       const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
       const dateKey = (item) => eventDateParts(item.date).sortKey;
+      const normalizeBrand = (item) => item.eventBrand || (/back2thebooth/i.test(item.promoterInstagramHandle || "") || /back 2 the booth|b2tb|back in the bay/i.test(item.name || "") ? "b2tb" : "djgelo");
       const upcoming = sourceEvents.filter((item) => dateKey(item) >= todayKey).sort((a,b) => dateKey(a).localeCompare(dateKey(b)));
       const past = sourceEvents.filter((item) => dateKey(item) < todayKey).sort((a,b) => dateKey(b).localeCompare(dateKey(a)));
+      const b2tbUpcoming = upcoming.filter((item) => normalizeBrand(item) === "b2tb");
+      const b2tbPast = past.filter((item) => normalizeBrand(item) === "b2tb");
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = upcoming.length ? upcoming.map(eventCardHTML).join("") : emptyEventHTML(false);
       if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map((event) => eventCardHTML(event, true)).join("") : emptyEventHTML(true);
       if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next event.</p></div>`;
+      if (b2tbUpcomingNode) b2tbUpcomingNode.innerHTML = b2tbUpcoming.length ? b2tbUpcoming.map(eventCardHTML).join("") : `<div class="event-empty"><span class="feature-kicker">Next event</span><h3>New B2TB date soon.</h3><p>Follow @back2thebooth for the next announcement.</p></div>`;
+      if (b2tbPastNode) b2tbPastNode.innerHTML = b2tbPast.length ? b2tbPast.map((event) => eventCardHTML(event, true)).join("") : `<div class="event-empty"><span class="feature-kicker">Archive</span><h3>Past B2TB events will live here.</h3></div>`;
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error("Event loading failed:", error);
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = emptyEventHTML(false);
       if (pastEventsNode) pastEventsNode.innerHTML = emptyEventHTML(true);
       if (homeNextEventNode) homeNextEventNode.innerHTML = `<div class="event-empty compact-empty"><span class="feature-kicker">Calendar</span><h3>Dates coming soon.</h3><p>Public events will appear here.</p></div>`;
+      if (b2tbUpcomingNode) b2tbUpcomingNode.innerHTML = emptyEventHTML(false);
+      if (b2tbPastNode) b2tbPastNode.innerHTML = emptyEventHTML(true);
     });
 }
 

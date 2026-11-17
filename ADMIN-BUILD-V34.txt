@@ -1,0 +1,7 @@
+DJ GELO Site v34
+
+Changes:
+- Booking success confirmation is now a centered popup card that fades away automatically.
+- Booking form event type changed from College event to School event.
+- Booking page Available for copy changed from College events to School events.
+- Booking page meta description updated to school events.

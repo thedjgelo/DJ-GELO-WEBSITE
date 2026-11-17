@@ -1,0 +1,2 @@
+DJ GELO site admin build V32
+Adds Supabase events, mobile admin UI, inquiry storage/email function, and POSH embed support.

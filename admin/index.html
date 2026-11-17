@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#070707" />
+  <title>DJ GELO Admin</title>
+  <link rel="icon" href="/gelo-logo.png" />
+  <link rel="stylesheet" href="/admin/admin.css" />
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <a class="admin-brand" href="/" target="_blank" rel="noreferrer"><img src="/gelo-logo.png" alt="DJ GELO" /><span>ADMIN</span></a>
+      <div class="admin-session"><span id="adminEmail"></span><button id="logoutButton" class="ghost-button" type="button" hidden>Log out</button></div>
+    </header>
+
+    <section id="setupNotice" class="setup-notice" hidden><strong>Supabase setup required.</strong> Add your project URL and publishable key to <code>supabase-config.js</code>, then refresh.</section>
+
+    <section id="loginView" class="login-panel">
+      <span class="eyebrow">PRIVATE ACCESS</span>
+      <h1>DJ GELO Admin</h1>
+      <p>Manage events, leads, bookings and invoices from your phone or laptop.</p>
+      <form id="loginForm" class="stack-form">
+        <label>Email<input id="loginEmail" type="email" autocomplete="username" value="thedjgelo@gmail.com" required /></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+        <button class="primary-button" type="submit">Log in</button>
+        <p id="loginStatus" class="status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section id="dashboardView" hidden>
+      <nav class="admin-tabs" aria-label="Admin sections">
+        <button type="button" class="tab is-active" data-tab="dashboard">Dashboard</button>
+        <button type="button" class="tab" data-tab="events">Events</button>
+        <button type="button" class="tab" data-tab="inquiries">Inquiries <span id="newInquiryCount" class="count-badge" hidden></span></button>
+        <button type="button" class="tab" data-tab="bookings">Bookings</button>
+        <button type="button" class="tab" data-tab="invoices">Invoices</button>
+      </nav>
+
+      <section id="dashboardPanel" class="admin-panel">
+        <div class="panel-heading"><div><span class="eyebrow">OVERVIEW</span><h1>Dashboard</h1></div><button id="refreshDashboardButton" class="ghost-button" type="button">Refresh</button></div>
+        <div class="metric-grid">
+          <article class="metric-card"><span>New inquiries</span><strong id="metricNewInquiries">0</strong></article>
+          <article class="metric-card"><span>Upcoming bookings</span><strong id="metricUpcomingBookings">0</strong></article>
+          <article class="metric-card"><span>Unpaid balance</span><strong id="metricUnpaidBalance">$0</strong></article>
+          <article class="metric-card"><span>Upcoming public events</span><strong id="metricUpcomingEvents">0</strong></article>
+        </div>
+        <div class="dashboard-grid">
+          <section class="dashboard-card"><div class="dashboard-card-head"><h2>Next bookings</h2><button class="text-button jump-tab" data-target="bookings" type="button">View all</button></div><div id="dashboardBookings"></div></section>
+          <section class="dashboard-card"><div class="dashboard-card-head"><h2>Recent inquiries</h2><button class="text-button jump-tab" data-target="inquiries" type="button">View all</button></div><div id="dashboardInquiries"></div></section>
+        </div>
+      </section>
+
+      <section id="eventsPanel" class="admin-panel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">CALENDAR</span><h1>Events</h1></div><button id="addEventButton" class="primary-button" type="button">+ Add event</button></div>
+        <div id="eventsList" class="admin-list"></div>
+      </section>
+
+      <section id="inquiriesPanel" class="admin-panel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">LEADS</span><h1>Inquiries</h1></div><div class="heading-actions"><button id="exportInquiriesButton" class="ghost-button" type="button">Export CSV</button><button id="refreshInquiriesButton" class="ghost-button" type="button">Refresh</button></div></div>
+        <div class="inquiry-toolbar">
+          <label class="toolbar-field toolbar-search"><span>Search</span><input id="inquirySearch" type="search" placeholder="Name, email, location…" /></label>
+          <label class="toolbar-field"><span>Status</span><select id="inquiryStatusFilter"><option value="all">All statuses</option><option value="new">New</option><option value="contacted">Contacted</option><option value="quote_sent">Quote sent</option><option value="booked">Booked</option><option value="declined">Declined</option></select></label>
+          <label class="toolbar-field"><span>Event type</span><select id="inquiryTypeFilter"><option value="all">All event types</option></select></label>
+          <label class="toolbar-field"><span>Sort</span><select id="inquirySort"><option value="newest">Newest received</option><option value="oldest">Oldest received</option><option value="event_soonest">Event date: soonest</option><option value="event_latest">Event date: latest</option><option value="name_az">Name: A–Z</option><option value="name_za">Name: Z–A</option></select></label>
+        </div>
+        <div id="inquiryResultsMeta" class="results-meta"></div>
+        <div id="inquiriesList" class="admin-list"></div>
+      </section>
+
+      <section id="bookingsPanel" class="admin-panel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">CONFIRMED WORK</span><h1>Bookings</h1></div><div class="heading-actions"><button id="exportBookingsButton" class="ghost-button" type="button">Export CSV</button><button id="addBookingButton" class="primary-button" type="button">+ Add booking</button></div></div>
+        <div class="inquiry-toolbar">
+          <label class="toolbar-field toolbar-search"><span>Search</span><input id="bookingSearch" type="search" placeholder="Client, event, location…" /></label>
+          <label class="toolbar-field"><span>Status</span><select id="bookingStatusFilter"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+          <label class="toolbar-field"><span>Sort</span><select id="bookingSort"><option value="soonest">Event date: soonest</option><option value="latest">Event date: latest</option><option value="created_newest">Newest added</option><option value="name_az">Client: A–Z</option></select></label>
+        </div>
+        <div id="bookingResultsMeta" class="results-meta"></div>
+        <div id="bookingsList" class="admin-list"></div>
+      </section>
+
+      <section id="invoicesPanel" class="admin-panel" hidden>
+        <div class="panel-heading"><div><span class="eyebrow">FILES + PAYMENT</span><h1>Invoices</h1></div><button id="uploadInvoiceButton" class="primary-button" type="button">+ Upload invoice</button></div>
+        <div class="notice-card"><strong>Draft vs send</strong><p>“Draft email” opens Gmail with the client, subject and message filled in; attach the PDF manually. “Send invoice” sends the stored PDF automatically through Resend.</p></div>
+        <div id="invoicesList" class="admin-list"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="eventDialog" class="admin-dialog">
+    <form id="eventForm" method="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">EVENT EDITOR</span><h2 id="eventDialogTitle">Add event</h2></div><button class="icon-button" id="closeEventDialog" type="button">×</button></div>
+      <input id="eventId" type="hidden" />
+      <div class="form-grid">
+        <label class="wide">Event name<input id="eventName" required /></label><label>Date<input id="eventDate" type="date" required /></label>
+        <label>Status<select id="eventStatus"><option value="draft">Draft</option><option value="published">Published</option></select></label>
+        <label>Visibility<select id="eventVisibility"><option value="public">Public event</option><option value="private">Private booking</option></select></label>
+        <label>Brand<select id="eventBrand"><option value="djgelo">DJ GELO</option><option value="b2tb">Back 2 The Booth</option></select></label>
+        <label>Venue<input id="eventVenue" /></label><label>City<input id="eventCity" placeholder="San Jose, CA" /></label><label class="wide">Address<input id="eventAddress" /></label>
+        <label>Time<input id="eventTime" placeholder="10 PM - 2 AM" /></label><label>Age<input id="eventAge" placeholder="21+" /></label><label class="wide">Event type<input id="eventType" placeholder="CLUB / OPEN FORMAT" /></label>
+        <label class="wide">Ticket URL<input id="ticketUrl" type="url" /></label><label class="wide">POSH / checkout embed URL<input id="embedUrl" type="url" /></label><label>Button label<input id="buttonLabel" placeholder="Tickets / RSVP" /></label>
+        <label>Venue Instagram handle<input id="venueInstagramHandle" placeholder="fuzesj" /></label><label class="wide">Venue Instagram URL<input id="venueInstagramUrl" type="url" /></label><label>Promoter Instagram handle<input id="promoterInstagramHandle" placeholder="back2thebooth" /></label><label class="wide">Promoter Instagram URL<input id="promoterInstagramUrl" type="url" /></label><label class="wide">Flyer URL<input id="flyerUrl" type="url" /></label>
+      </div>
+      <p id="eventFormStatus" class="status"></p>
+      <div class="dialog-actions"><button id="deleteEventButton" class="danger-button" type="button" hidden>Delete</button><span class="spacer"></span><button class="ghost-button" id="cancelEventButton" type="button">Cancel</button><button class="primary-button" type="submit">Save event</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="bookingDialog" class="admin-dialog">
+    <form id="bookingFormAdmin" method="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">BOOKING</span><h2 id="bookingDialogTitle">Add booking</h2></div><button class="icon-button" id="closeBookingDialog" type="button">×</button></div>
+      <input id="bookingId" type="hidden" /><input id="bookingInquiryId" type="hidden" />
+      <div class="form-grid">
+        <label>Client name<input id="bookingClientName" required /></label><label>Email<input id="bookingClientEmail" type="email" required /></label><label>Phone<input id="bookingClientPhone" /></label><label>Status<select id="bookingStatus"><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+        <label>Event type<input id="bookingEventType" /></label><label>Event date<input id="bookingEventDate" type="date" required /></label><label class="wide">Location / venue<input id="bookingLocation" /></label><label>Event hours<input id="bookingEventHours" /></label><label>Guest count<input id="bookingGuestCount" /></label>
+        <label>Total agreed price<input id="bookingAgreedPrice" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Deposit amount<input id="bookingDepositAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Amount paid<input id="bookingPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+        <label class="wide">Internal notes<textarea id="bookingNotes" rows="5" placeholder="Timeline, contact notes, special requests…"></textarea></label>
+      </div>
+      <p id="bookingFormStatus" class="status"></p>
+      <div class="dialog-actions"><button id="deleteBookingButton" class="danger-button" type="button" hidden>Delete</button><span class="spacer"></span><button id="cancelBookingButton" class="ghost-button" type="button">Cancel</button><button class="primary-button" type="submit">Save booking</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="invoiceDialog" class="admin-dialog">
+    <form id="invoiceForm" method="dialog">
+      <div class="dialog-head"><div><span class="eyebrow">INVOICE</span><h2>Upload invoice PDF</h2></div><button class="icon-button" id="closeInvoiceDialog" type="button">×</button></div>
+      <div class="form-grid">
+        <label class="wide">Booking<select id="invoiceBooking" required></select></label><label>Invoice number<input id="invoiceNumber" placeholder="GELO-2026-001" required /></label><label>Status<select id="invoiceStatus"><option value="draft">Draft</option><option value="sent">Sent</option><option value="paid">Paid</option></select></label>
+        <label>Invoice amount<input id="invoiceAmount" type="number" min="0" step="0.01" inputmode="decimal" required /></label><label>Deposit amount<input id="invoiceDeposit" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Balance due<input id="invoiceBalance" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+        <label class="wide">PDF file<input id="invoiceFile" type="file" accept="application/pdf,.pdf" required /></label>
+      </div>
+      <p id="invoiceFormStatus" class="status"></p>
+      <div class="dialog-actions"><span class="spacer"></span><button id="cancelInvoiceButton" class="ghost-button" type="button">Cancel</button><button class="primary-button" type="submit">Upload invoice</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/supabase-config.js"></script>
+  <script src="/admin/admin.js"></script>
+</body>
+</html>

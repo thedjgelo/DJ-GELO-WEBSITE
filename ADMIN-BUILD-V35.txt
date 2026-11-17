@@ -1,0 +1,5 @@
+DJ GELO site v35
+
+- Replaced the fragile repurposed inline success state with a dedicated booking confirmation overlay.
+- Successful booking submissions now display a centered Inquiry sent confirmation card and fade away automatically.
+- School event / School events wording from v34 is preserved.
