@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://lymenvodwdxpncblqyfs.supabase.co https://www.google-analytics.com https://region1.google-analytics.com; frame-src https://posh.vip https://mail.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
   <meta name="theme-color" content="#050505" />
   <meta name="description" content="Upcoming DJ GELO events, public dates and past shows." />
   <link rel="canonical" href="https://djgelo.com/events/" />
@@ -49,7 +52,11 @@
       </div>
     </section>
     <section class="section" id="upcoming" aria-labelledby="upcoming-title"><div class="section-head"><h2 id="upcoming-title">Upcoming</h2><span>Next events</span></div><div id="upcomingEvents" class="events-stack"><div class="event-empty"><span class="feature-kicker">Loading dates</span><h3>Checking the calendar.</h3><p>Upcoming public dates will appear here.</p></div></div></section>
-    <section class="section" id="past" aria-labelledby="past-title"><div class="section-head"><h2 id="past-title">Past Events</h2><span>Selected archive</span></div><div id="pastEvents" class="events-stack past-events"><div class="event-empty"><span class="feature-kicker">Archive</span><h3>No past dates added yet.</h3><p>This section becomes a running record of shows as you add them.</p></div></div></section>
+    <section class="section" id="past" aria-labelledby="past-title"><div class="section-head"><h2 id="past-title">Past Events</h2><span>Selected archive</span></div>
+      <div class="event-archive-toolbar" id="archiveFilters" aria-label="Filter past events"><button class="archive-filter is-active" type="button" data-filter="all">All</button><button class="archive-filter" type="button" data-filter="djgelo">DJ GELO</button><button class="archive-filter" type="button" data-filter="b2tb">B2TB</button><button class="archive-filter" type="button" data-filter="club">Club</button><button class="archive-filter" type="button" data-filter="concert">Concert</button><button class="archive-filter" type="button" data-filter="school">School</button></div>
+      <div id="pastEvents" class="past-event-archive"><div class="event-empty"><span class="feature-kicker">Archive</span><h3>No past dates added yet.</h3><p>This section becomes a running record of shows as you add them.</p></div></div>
+      <button id="archiveToggle" class="btn btn-ghost archive-toggle" type="button" hidden>View full archive ↓</button>
+    </section>
     <section class="section"><div class="event-cta"><span class="feature-kicker">Private event?</span><h2>Put your date on the calendar.</h2><p>Nightclubs, school events, private events, weddings and more.</p><a class="btn btn-primary" href="/book/">Booking inquiry ↗</a></div></section>
     <footer class="site-footer compact-footer">
       <div class="footer-socials footer-icons-only" aria-label="DJ GELO social profiles">

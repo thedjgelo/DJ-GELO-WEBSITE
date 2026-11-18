@@ -310,7 +310,9 @@ const normalizeDbEvent = (row) => ({
   buttonLabel: row.button_label,
   flyer: row.flyer_url,
   embedUrl: row.embed_url,
-  eventBrand: row.event_brand || "djgelo"
+  eventBrand: row.event_brand || "djgelo",
+  archiveVisible: row.archive_visible !== false,
+  publicCategory: row.public_category || "other"
 });
 const eventCardHTML = (event, pastView = false) => {
   const date = eventDateParts(event.date);
@@ -347,6 +349,41 @@ const eventCardHTML = (event, pastView = false) => {
     ${embed}
   </article>`;
 };
+const archiveFilterNode = document.getElementById("archiveFilters");
+const archiveToggleNode = document.getElementById("archiveToggle");
+let archiveExpanded = false;
+let archiveFilter = "all";
+let archiveSource = [];
+const inferArchiveCategory = (event) => {
+  if (event.eventBrand === "b2tb") return "b2tb";
+  const hay = `${event.type || ""} ${event.name || ""} ${event.venue || ""}`.toLowerCase();
+  if (/concert|opening/.test(hay)) return "concert";
+  if (/school|prom|homecoming|winter ball|college/.test(hay)) return "school";
+  if (/club|bar|lounge|night/.test(hay)) return "club";
+  return event.publicCategory || "other";
+};
+const archiveRowHTML = (event) => {
+  const date = eventDateParts(event.date);
+  const title = event.name || event.venue || "Event";
+  const brand = event.eventBrand || "djgelo";
+  const detail = [event.venue && event.venue !== title ? event.venue : "", event.city].filter(Boolean).join(" · ");
+  const url = event.ticketUrl || event.sourceUrl || event.instagramUrl || event.promoterInstagramUrl || event.venueInstagramUrl || "";
+  return `<article class="archive-event-row"><div class="archive-date"><strong>${escapeHTML(date.mon)}</strong><span>${escapeHTML(date.day || date.year)}</span></div><div class="archive-copy"><div class="archive-labels"><span class="event-brand-badge ${brand === "b2tb" ? "is-b2tb" : ""}">${brand === "b2tb" ? "BACK 2 THE BOOTH" : "DJ GELO"}</span><span>${escapeHTML((event.type || "EVENT").toUpperCase())}</span></div><h3>${escapeHTML(title)}</h3>${detail ? `<p>${escapeHTML(detail)}</p>` : ""}</div>${url ? `<a class="archive-link" href="${escapeHTML(url)}" target="_blank" rel="noreferrer" aria-label="Open details for ${escapeHTML(title)}">↗</a>` : ""}</article>`;
+};
+const renderPastArchive = () => {
+  if (!pastEventsNode) return;
+  let rows = archiveSource.filter(event => event.archiveVisible !== false);
+  if (archiveFilter === "djgelo") rows = rows.filter(event => (event.eventBrand || "djgelo") === "djgelo");
+  else if (archiveFilter === "b2tb") rows = rows.filter(event => (event.eventBrand || "djgelo") === "b2tb");
+  else if (archiveFilter !== "all") rows = rows.filter(event => inferArchiveCategory(event) === archiveFilter);
+  const visible = archiveExpanded ? rows : rows.slice(0, 8);
+  const byYear = visible.reduce((map, event) => { const year = eventDateParts(event.date).year || "Archive"; (map[year] ||= []).push(event); return map; }, {});
+  pastEventsNode.innerHTML = visible.length ? Object.entries(byYear).sort((a,b)=>String(b[0]).localeCompare(String(a[0]))).map(([year,items]) => `<section class="archive-year"><h3>${escapeHTML(year)}</h3><div class="archive-year-list">${items.map(archiveRowHTML).join("")}</div></section>`).join("") : emptyEventHTML(true);
+  if (archiveToggleNode) { archiveToggleNode.hidden = rows.length <= 8; archiveToggleNode.textContent = archiveExpanded ? "Show recent only ↑" : `View full archive (${rows.length}) ↓`; }
+};
+if (archiveFilterNode) archiveFilterNode.addEventListener("click", (event) => { const button = event.target.closest("[data-filter]"); if (!button) return; archiveFilter = button.dataset.filter || "all"; archiveExpanded = false; archiveFilterNode.querySelectorAll("[data-filter]").forEach(b => b.classList.toggle("is-active", b === button)); renderPastArchive(); });
+if (archiveToggleNode) archiveToggleNode.addEventListener("click", () => { archiveExpanded = !archiveExpanded; renderPastArchive(); });
+
 const emptyEventHTML = (past = false) => `<div class="event-empty"><span class="feature-kicker">${past ? "Archive" : "New dates soon"}</span><h3>${past ? "The archive starts here." : "Nothing public on the board yet."}</h3><p>${past ? "Past events will collect here as new dates are added." : "Private bookings stay private. New public dates will show here when they are announced."}</p></div>`;
 
 const loadEventsFromJson = async () => {
@@ -381,12 +418,13 @@ if (upcomingEventsNode || pastEventsNode || homeNextEventNode || b2tbUpcomingNod
       const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
       const dateKey = (item) => eventDateParts(item.date).sortKey;
       const normalizeBrand = (item) => item.eventBrand || (/back2thebooth/i.test(item.promoterInstagramHandle || "") || /back 2 the booth|b2tb|back in the bay/i.test(item.name || "") ? "b2tb" : "djgelo");
-      const upcoming = sourceEvents.filter((item) => dateKey(item) >= todayKey).sort((a,b) => dateKey(a).localeCompare(dateKey(b)));
-      const past = sourceEvents.filter((item) => dateKey(item) < todayKey).sort((a,b) => dateKey(b).localeCompare(dateKey(a)));
+      const publicEvents = sourceEvents.filter((item) => item.status !== 'private');
+      const upcoming = publicEvents.filter((item) => dateKey(item) >= todayKey).sort((a,b) => dateKey(a).localeCompare(dateKey(b)));
+      const past = publicEvents.filter((item) => dateKey(item) < todayKey).sort((a,b) => dateKey(b).localeCompare(dateKey(a)));
       const b2tbUpcoming = upcoming.filter((item) => normalizeBrand(item) === "b2tb");
       const b2tbPast = past.filter((item) => normalizeBrand(item) === "b2tb");
       if (upcomingEventsNode) upcomingEventsNode.innerHTML = upcoming.length ? upcoming.map(eventCardHTML).join("") : emptyEventHTML(false);
-      if (pastEventsNode) pastEventsNode.innerHTML = past.length ? past.map((event) => eventCardHTML(event, true)).join("") : emptyEventHTML(true);
+      if (pastEventsNode) { archiveSource = past; renderPastArchive(); }
       if (homeNextEventNode) homeNextEventNode.innerHTML = upcoming.length ? eventCardHTML(upcoming[0]) : `<div class="event-empty compact-empty"><span class="feature-kicker">New dates soon</span><h3>No public date announced yet.</h3><p>Check back here or follow @thedjgelo for the next event.</p></div>`;
       if (b2tbUpcomingNode) b2tbUpcomingNode.innerHTML = b2tbUpcoming.length ? b2tbUpcoming.map(eventCardHTML).join("") : `<div class="event-empty"><span class="feature-kicker">Next event</span><h3>New B2TB date soon.</h3><p>Follow @back2thebooth for the next announcement.</p></div>`;
       if (b2tbPastNode) b2tbPastNode.innerHTML = b2tbPast.length ? b2tbPast.map((event) => eventCardHTML(event, true)).join("") : `<div class="event-empty"><span class="feature-kicker">Archive</span><h3>Past B2TB events will live here.</h3></div>`;

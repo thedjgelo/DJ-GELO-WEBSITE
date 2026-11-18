@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://lymenvodwdxpncblqyfs.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="no-referrer" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), payment=(), usb=()" />
   <meta name="robots" content="noindex,nofollow" />
   <meta name="theme-color" content="#070707" />
   <title>DJ GELO Admin</title>
@@ -35,20 +38,32 @@
         <button type="button" class="tab is-active" data-tab="dashboard">Dashboard</button>
         <button type="button" class="tab" data-tab="events">Events</button>
         <button type="button" class="tab" data-tab="inquiries">Inquiries <span id="newInquiryCount" class="count-badge" hidden></span></button>
-        <button type="button" class="tab" data-tab="bookings">Bookings</button>
+        <button type="button" class="tab" data-tab="bookings">Gigs</button>
         <button type="button" class="tab" data-tab="invoices">Invoices</button>
       </nav>
 
       <section id="dashboardPanel" class="admin-panel">
         <div class="panel-heading"><div><span class="eyebrow">OVERVIEW</span><h1>Dashboard</h1></div><button id="refreshDashboardButton" class="ghost-button" type="button">Refresh</button></div>
+        <div class="dashboard-period-bar">
+          <label class="toolbar-field"><span>Financial period</span><select id="dashboardPeriod"><option value="month">This month</option><option value="last_month">Last month</option><option value="year">This year</option><option value="all">All time</option><option value="custom">Custom</option></select></label>
+          <label class="toolbar-field dashboard-custom" id="dashboardStartWrap" hidden><span>From</span><input id="dashboardStart" type="date" /></label>
+          <label class="toolbar-field dashboard-custom" id="dashboardEndWrap" hidden><span>To</span><input id="dashboardEnd" type="date" /></label>
+        </div>
         <div class="metric-grid">
+          <article class="metric-card"><span>Gigs in period</span><strong id="metricPeriodGigs">0</strong></article>
+          <article class="metric-card"><span>Gross</span><strong id="metricPeriodGross">$0</strong></article>
+          <article class="metric-card"><span>Collected</span><strong id="metricPeriodCollected">$0</strong></article>
+          <article class="metric-card"><span>Expenses</span><strong id="metricPeriodExpenses">$0</strong></article>
+          <article class="metric-card"><span>Net</span><strong id="metricPeriodNet">$0</strong></article>
+          <article class="metric-card"><span>DJ GELO net</span><strong id="metricDjNet">$0</strong></article>
+          <article class="metric-card"><span>B2TB net</span><strong id="metricB2tbNet">$0</strong></article>
+          <article class="metric-card"><span>Outstanding</span><strong id="metricUnpaidBalance">$0</strong></article>
           <article class="metric-card"><span>New inquiries</span><strong id="metricNewInquiries">0</strong></article>
-          <article class="metric-card"><span>Upcoming bookings</span><strong id="metricUpcomingBookings">0</strong></article>
-          <article class="metric-card"><span>Unpaid balance</span><strong id="metricUnpaidBalance">$0</strong></article>
+          <article class="metric-card"><span>Upcoming gigs</span><strong id="metricUpcomingBookings">0</strong></article>
           <article class="metric-card"><span>Upcoming public events</span><strong id="metricUpcomingEvents">0</strong></article>
         </div>
         <div class="dashboard-grid">
-          <section class="dashboard-card"><div class="dashboard-card-head"><h2>Next bookings</h2><button class="text-button jump-tab" data-target="bookings" type="button">View all</button></div><div id="dashboardBookings"></div></section>
+          <section class="dashboard-card"><div class="dashboard-card-head"><h2>Next gigs</h2><button class="text-button jump-tab" data-target="bookings" type="button">View all</button></div><div id="dashboardBookings"></div></section>
           <section class="dashboard-card"><div class="dashboard-card-head"><h2>Recent inquiries</h2><button class="text-button jump-tab" data-target="inquiries" type="button">View all</button></div><div id="dashboardInquiries"></div></section>
         </div>
       </section>
@@ -71,18 +86,20 @@
       </section>
 
       <section id="bookingsPanel" class="admin-panel" hidden>
-        <div class="panel-heading"><div><span class="eyebrow">CONFIRMED WORK</span><h1>Bookings</h1></div><div class="heading-actions"><button id="exportBookingsButton" class="ghost-button" type="button">Export CSV</button><button id="addBookingButton" class="primary-button" type="button">+ Add booking</button></div></div>
-        <div class="inquiry-toolbar">
-          <label class="toolbar-field toolbar-search"><span>Search</span><input id="bookingSearch" type="search" placeholder="Client, event, location…" /></label>
+        <div class="panel-heading"><div><span class="eyebrow">MASTER GIG LEDGER</span><h1>Gigs</h1><p class="panel-copy">Track every DJ gig and B2TB event in one place, including money collected, expenses and net profit.</p></div><div class="heading-actions"><button id="exportBookingsButton" class="ghost-button" type="button">Export CSV</button><button id="addBookingButton" class="primary-button" type="button">+ Add gig</button></div></div>
+        <div class="inquiry-toolbar gig-toolbar">
+          <label class="toolbar-field toolbar-search"><span>Search</span><input id="bookingSearch" type="search" placeholder="Client, event, venue…" /></label>
           <label class="toolbar-field"><span>Status</span><select id="bookingStatusFilter"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
-          <label class="toolbar-field"><span>Sort</span><select id="bookingSort"><option value="soonest">Event date: soonest</option><option value="latest">Event date: latest</option><option value="created_newest">Newest added</option><option value="name_az">Client: A–Z</option></select></label>
+          <label class="toolbar-field"><span>Gig type</span><select id="bookingKindFilter"><option value="all">All gigs</option><option value="dj_gig">DJ gigs</option><option value="b2tb_event">B2TB events</option></select></label>
+          <label class="toolbar-field"><span>Period</span><select id="bookingPeriodFilter"><option value="all">All time</option><option value="month">This month</option><option value="last_month">Last month</option><option value="year">This year</option></select></label><label class="toolbar-field"><span>Records</span><select id="bookingArchiveFilter"><option value="active">Active</option><option value="archived">Archived</option><option value="all">All records</option></select></label>
+          <label class="toolbar-field"><span>Sort</span><select id="bookingSort"><option value="soonest">Event date: soonest</option><option value="latest">Event date: latest</option><option value="created_newest">Newest added</option><option value="gross_high">Gross: highest</option><option value="net_high">Net: highest</option><option value="name_az">Client: A–Z</option></select></label>
         </div>
         <div id="bookingResultsMeta" class="results-meta"></div>
         <div id="bookingsList" class="admin-list"></div>
       </section>
 
       <section id="invoicesPanel" class="admin-panel" hidden>
-        <div class="panel-heading"><div><span class="eyebrow">FILES + PAYMENT</span><h1>Invoices</h1></div><button id="uploadInvoiceButton" class="primary-button" type="button">+ Upload invoice</button></div>
+        <div class="panel-heading"><div><span class="eyebrow">FILES + PAYMENT</span><h1>Invoices</h1></div><div class="heading-actions"><button id="exportInvoicesButton" class="ghost-button" type="button">Export CSV</button><button id="uploadInvoiceButton" class="primary-button" type="button">+ Upload invoice</button></div></div>
         <div class="notice-card"><strong>Draft vs send</strong><p>“Draft email” opens Gmail with the client, subject and message filled in; attach the PDF manually. “Send invoice” sends the stored PDF automatically through Resend.</p></div>
         <div id="invoicesList" class="admin-list"></div>
       </section>
@@ -97,7 +114,7 @@
         <label class="wide">Event name<input id="eventName" required /></label><label>Date<input id="eventDate" type="date" required /></label>
         <label>Status<select id="eventStatus"><option value="draft">Draft</option><option value="published">Published</option></select></label>
         <label>Visibility<select id="eventVisibility"><option value="public">Public event</option><option value="private">Private booking</option></select></label>
-        <label>Brand<select id="eventBrand"><option value="djgelo">DJ GELO</option><option value="b2tb">Back 2 The Booth</option></select></label>
+        <label>Brand<select id="eventBrand"><option value="djgelo">DJ GELO</option><option value="b2tb">Back 2 The Booth</option></select></label><label>Archive category<select id="eventPublicCategory"><option value="club">Club</option><option value="concert">Concert</option><option value="school">School</option><option value="b2tb">B2TB</option><option value="other">Other</option></select></label><label class="check-field"><input id="eventArchiveVisible" type="checkbox" checked /><span>Show past event in public archive</span></label>
         <label>Venue<input id="eventVenue" /></label><label>City<input id="eventCity" placeholder="San Jose, CA" /></label><label class="wide">Address<input id="eventAddress" /></label>
         <label>Time<input id="eventTime" placeholder="10 PM - 2 AM" /></label><label>Age<input id="eventAge" placeholder="21+" /></label><label class="wide">Event type<input id="eventType" placeholder="CLUB / OPEN FORMAT" /></label>
         <label class="wide">Ticket URL<input id="ticketUrl" type="url" /></label><label class="wide">POSH / checkout embed URL<input id="embedUrl" type="url" /></label><label>Button label<input id="buttonLabel" placeholder="Tickets / RSVP" /></label>
@@ -110,16 +127,22 @@
 
   <dialog id="bookingDialog" class="admin-dialog">
     <form id="bookingFormAdmin" method="dialog">
-      <div class="dialog-head"><div><span class="eyebrow">BOOKING</span><h2 id="bookingDialogTitle">Add booking</h2></div><button class="icon-button" id="closeBookingDialog" type="button">×</button></div>
+      <div class="dialog-head"><div><span class="eyebrow">GIG LEDGER</span><h2 id="bookingDialogTitle">Add gig</h2></div><button class="icon-button" id="closeBookingDialog" type="button">×</button></div>
       <input id="bookingId" type="hidden" /><input id="bookingInquiryId" type="hidden" />
       <div class="form-grid">
-        <label>Client name<input id="bookingClientName" required /></label><label>Email<input id="bookingClientEmail" type="email" required /></label><label>Phone<input id="bookingClientPhone" /></label><label>Status<select id="bookingStatus"><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
-        <label>Event type<input id="bookingEventType" /></label><label>Event date<input id="bookingEventDate" type="date" required /></label><label class="wide">Location / venue<input id="bookingLocation" /></label><label>Event hours<input id="bookingEventHours" /></label><label>Guest count<input id="bookingGuestCount" /></label>
-        <label>Total agreed price<input id="bookingAgreedPrice" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Deposit amount<input id="bookingDepositAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Amount paid<input id="bookingPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label>
-        <label class="wide">Internal notes<textarea id="bookingNotes" rows="5" placeholder="Timeline, contact notes, special requests…"></textarea></label>
+        <label>Gig type<select id="bookingGigKind"><option value="dj_gig">DJ gig</option><option value="b2tb_event">B2TB event</option></select></label><label>Status<select id="bookingStatus"><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+        <label>Client / event name<input id="bookingClientName" required /></label><label>Email<input id="bookingClientEmail" type="email" /></label><label>Phone<input id="bookingClientPhone" /></label><label>Event type<input id="bookingEventType" /></label>
+        <label>Event date<input id="bookingEventDate" type="date" required /></label><label>Event hours<input id="bookingEventHours" /></label><label class="wide">Location / venue<input id="bookingLocation" /></label><label>Guest count<input id="bookingGuestCount" /></label>
+        <label>Agreed DJ pay<input id="bookingAgreedPrice" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Deposit amount<input id="bookingDepositAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>DJ pay collected<input id="bookingPaidAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+        <label>Ticket / event revenue<input id="bookingTicketRevenue" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Tips<input id="bookingTipsAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>General / misc expenses<input id="bookingExpensesAmount" type="number" min="0" step="0.01" inputmode="decimal" /></label><div class="wide form-subhead"><strong>B2TB costs</strong><span>Optional breakdown for your own events. These roll into total expenses.</span></div><label>DJ costs<input id="bookingB2tbDjCosts" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Staff costs<input id="bookingB2tbStaffCosts" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Venue costs<input id="bookingB2tbVenueCosts" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Marketing costs<input id="bookingB2tbMarketingCosts" type="number" min="0" step="0.01" inputmode="decimal" /></label><label>Other B2TB costs<input id="bookingB2tbOtherCosts" type="number" min="0" step="0.01" inputmode="decimal" /></label>
+        <label>Contract status<select id="bookingContractStatus"><option value="not_needed">Not needed</option><option value="not_sent">Not sent</option><option value="sent">Sent</option><option value="signed">Signed</option></select></label><label>Payment method<select id="bookingPaymentMethod"><option value="">Not set</option><option value="Zelle">Zelle</option><option value="Cash">Cash</option><option value="Venmo">Venmo</option><option value="Check">Check</option><option value="ACH / bank transfer">ACH / bank transfer</option><option value="Other">Other</option></select></label>
+        <label>Record quality<select id="bookingDataQuality"><option value="complete">Complete</option><option value="partial">Partial</option><option value="estimated">Estimated</option></select></label>
+        <label class="check-field wide"><input id="bookingIncludeFinancialTotals" type="checkbox" checked /><span>Include this gig in financial totals</span></label>
+        <label class="wide">Internal notes<textarea id="bookingNotes" rows="5" placeholder="Timeline, contact notes, special requests, expenses…"></textarea></label>
+        <label class="wide">Source / history notes<textarea id="bookingSourceNotes" rows="3" placeholder="Invoice, Instagram post/story, manual reconstruction…"></textarea></label>
       </div>
       <p id="bookingFormStatus" class="status"></p>
-      <div class="dialog-actions"><button id="deleteBookingButton" class="danger-button" type="button" hidden>Delete</button><span class="spacer"></span><button id="cancelBookingButton" class="ghost-button" type="button">Cancel</button><button class="primary-button" type="submit">Save booking</button></div>
+      <div class="dialog-actions"><button id="deleteBookingButton" class="danger-button" type="button" hidden>Delete permanently</button><button id="archiveBookingButton" class="ghost-button" type="button" hidden>Archive</button><span class="spacer"></span><button id="cancelBookingButton" class="ghost-button" type="button">Cancel</button><button class="primary-button" type="submit">Save gig</button></div>
     </form>
   </dialog>
 
